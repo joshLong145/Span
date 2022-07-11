@@ -10,7 +10,11 @@ export interface DiskIOProvider {
     writeFileSync: (path: string | URL, data: Uint8Array) => void
 }
 
-export class InstanceWrapper<T> {
+export class WorkerDefinition {
+    constructor() {}
+}
+
+export class InstanceWrapper<T extends WorkerDefinition> {
     private _instance: T;
     private _config: InstanceConfiguration;
 

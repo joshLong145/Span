@@ -1,6 +1,4 @@
-const { args } = Deno;
-import { WorkerDefinition } from "./base/worker.ts";
-import { InstanceWrapper } from "./base/InstanceWrapper.ts";
+import { InstanceWrapper, WorkerDefinition } from "./src/InstanceWrapper";
 
 class Example extends WorkerDefinition {
 

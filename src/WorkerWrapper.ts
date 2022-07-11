@@ -1,5 +1,3 @@
-import {WorkerMethod} from './worker.ts';
-
 
 export declare type WorkerMethod = (buffer: ArrayBuffer) => ArrayBuffer
 
