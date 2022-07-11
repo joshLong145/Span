@@ -50,11 +50,11 @@ class Example extends WorkerDefinition {
     }
 }
 
-const wraper: InstanceWrapper<Example> = new InstanceWrapper<Example>(new Example(), {
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(new Example(), {
     outputPath: 'output'
 });
 
-wraper.Create({
+wrapper.Create({
     writeFileSync: Deno.writeFileSync
 });
 
