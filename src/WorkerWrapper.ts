@@ -1,5 +1,8 @@
 import {WorkerMethod} from './worker.ts';
 
+
+export declare type WorkerMethod = (buffer: ArrayBuffer) => ArrayBuffer
+
 export class WorkerWrapper {
     private _worker: WorkerMethod;
     
@@ -13,7 +16,6 @@ export class WorkerWrapper {
     private _serializeWorker(): string {
         return `function ${this._worker.toString()}`;
     }
-
 
     public CreateExecMapping(): string {
         return `"${this.WorkerName}": ${this._serializeWorker()},`;
