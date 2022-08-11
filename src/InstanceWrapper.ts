@@ -11,7 +11,12 @@ export interface DiskIOProvider {
 }
 
 export class WorkerDefinition {
+    public execMap: Record<string, Function> = {};
     constructor() {}
+
+    public execute(name: string) {
+        this.execMap[name]()
+    }
 }
 
 export class InstanceWrapper<T extends WorkerDefinition> {
@@ -29,13 +34,24 @@ export class InstanceWrapper<T extends WorkerDefinition> {
 
     private _generate(): void {
         const keys = Reflect.ownKeys(Object.getPrototypeOf(this._instance))
-        const wrps = []
+        const wrps: WorkerWrapper[] = []
         for (const key of keys) {
             key !== "constructor" && wrps.push(new WorkerWrapper(this._instance[key]))
         }
 
         this._wm = new WorkerManager(wrps);
         this._wb = new WorkerBridge(wrps);
+    }
+
+
+    public start() {
+        this._wb.bufferMap(this._instance);
+        const ww = this._wb.workerWrappers(this._instance);
+        for (const w of ww) {
+            this._instance.execMap[(w as any)._name] = w
+        }
+        
+        this._wb.workerBootstrap(this._instance, this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 
     public Create(provider: DiskIOProvider): void {

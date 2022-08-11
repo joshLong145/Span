@@ -12,11 +12,9 @@ export class WorkerManager {
         this._workers.forEach(worker => {
             root += `${worker.CreateExecMapping()}\n`
         });
-
         root += "}\n";
         return root
     }
-
 
     public CreateOnMessageHandler(): string {
         return `onmessage = (e) => {

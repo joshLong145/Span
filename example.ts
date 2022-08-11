@@ -1,4 +1,4 @@
-import { InstanceWrapper, WorkerDefinition } from "./src/InstanceWrapper";
+import { InstanceWrapper, WorkerDefinition } from "./src/InstanceWrapper.ts";
 
 class Example extends WorkerDefinition {
 
@@ -8,8 +8,8 @@ class Example extends WorkerDefinition {
 
     public test2(buffer: SharedArrayBuffer) {
         let arr = new Int8Array(buffer);
-        arr[0] = 1
-    
+        arr[0] += 1
+        console.log("hello ", arr)
         return arr
     }
     
@@ -30,15 +30,19 @@ class Example extends WorkerDefinition {
         }
         arr[index] = hash
     }
-    return arr;
-},
+    console.log(arr)
     }
 }
 
-const wraper: InstanceWrapper<Example> = new InstanceWrapper<Example>(new Example(), {
+const example: WorkerDefinition = new Example();
+
+const wraper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
     outputPath: 'output'
 });
 
-wraper.Create({
-    writeFileSync: Deno.writeFileSync
-});
+wraper.start();
+
+example.execute("test1")
+example.execute("test2")
+example.execute("test2")
+example.execute("test2")
