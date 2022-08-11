@@ -41,8 +41,10 @@ const wraper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
 });
 
 wraper.start();
-
-example.execute("test1")
+//@ts-ignore
+await example.execute("test1").then(() => {
+    console.log("hello")
+})
 example.execute("test2")
 example.execute("test2")
 example.execute("test2")
