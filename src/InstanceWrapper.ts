@@ -14,8 +14,8 @@ export class WorkerDefinition {
     public execMap: Record<string, Function> = {};
     constructor() {}
 
-    public execute(name: string) {
-        this.execMap[name]()
+    public execute(name: string): Promise<void> {
+        return this.execMap[name]()
     }
 }
 
