@@ -45,22 +45,22 @@ export class InstanceWrapper<T extends WorkerDefinition> {
 
 
     public start() {
-        this._wb.bufferMap(this._instance);
-        const ww = this._wb.workerWrappers(this._instance);
+        this?._wb?.bufferMap(this._instance);
+        const ww = this?._wb?.workerWrappers(this._instance);
         for (const w of ww) {
             this._instance.execMap[(w as any)._name] = w
         }
         
-        this._wb.workerBootstrap(this._instance, this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
+        this?._wb?.workerBootstrap(this._instance, this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 
     public Create(provider: DiskIOProvider): void {
         const byteEncoder = new TextEncoder();
         provider.writeFileSync("output/worker.js",
-            byteEncoder.encode(`${this?._wm.CreateWorkerMap()}\n${this._wm?.CreateOnMessageHandler()}`)
+            byteEncoder.encode(`${this?._wm?.CreateWorkerMap()}\n${this._wm?.CreateOnMessageHandler()}`)
         );
         provider.writeFileSync("output/bridge.js",
-            byteEncoder.encode(`${this?._wb.createBridge()}`)
+            byteEncoder.encode(`${this?._wb?.createBridge()}`)
         );
     }
 
