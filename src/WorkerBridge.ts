@@ -50,7 +50,7 @@ export class WorkerBridge {
                     return
                 }
                 const context = self._executionMap[e.data.id]
-                context.promise && context.resolve()
+                context.promise && context.resolve(e.data.buffer)
                 delete self._executionMap[e.data.id]
             }
     }
@@ -88,7 +88,7 @@ export class WorkerBridge {
             let def = async function() {
                 let promiseResolve, promiseReject;
                 const id = self.uuidv4()
-                const prms = new Promise((resolve, reject) => {
+                const prms = new Promise<SharedArrayBuffer>((resolve, reject) => {
                     promiseResolve = resolve
                     promiseReject = reject
                 });
@@ -102,7 +102,7 @@ export class WorkerBridge {
                     id: id,
                     buffer: self.bufferMap[`${worker.WorkerName}`],
                 })
-                await prms
+                return prms
             }
             //@ts-ignore
             def._name = worker.WorkerName;

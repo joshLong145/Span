@@ -12,10 +12,15 @@ export interface DiskIOProvider {
 
 export class WorkerDefinition {
     public execMap: Record<string, Function> = {};
+    public worker: Worker = undefined;
     constructor() {}
 
-    public execute(name: string): Promise<void> {
+    public execute(name: string): Promise<SharedArrayBuffer> {
         return this.execMap[name]()
+    }
+
+    public terminateWorker() {
+        this.worker.terminate();
     }
 }
 
@@ -51,6 +56,10 @@ export class InstanceWrapper<T extends WorkerDefinition> {
             this._instance.execMap[(w as any)._name] = w
         }
         
+        this?._wb?.workerBootstrap(this._instance, this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
+    }
+
+    public restart() {
         this?._wb?.workerBootstrap(this._instance, this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 

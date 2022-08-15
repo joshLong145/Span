@@ -9,8 +9,7 @@ class Example extends WorkerDefinition {
     public test2(buffer: SharedArrayBuffer) {
         let arr = new Int8Array(buffer);
         arr[0] += 1
-        console.log("hello ", arr)
-        return arr
+        return arr.buffer
     }
     
    public test1(buffer: SharedArrayBuffer) {
@@ -30,29 +29,40 @@ class Example extends WorkerDefinition {
             }
             arr[index] = hash
         }
-        console.log(arr)
+        return arr.buffer;
     }
 }
 
 const example: WorkerDefinition = new Example();
 
-const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example as Example, {
     outputPath: 'output'
 });
 
 wrapper.start();
 
 //@ts-ignore
-await example.execute("test1").then(() => {
-    console.log("hello")
+await example.execute("test1").then((buf: SharedArrayBuffer) => {
+    console.log("hello", new Int32Array(buf))
 })
 
-example.execute("test2").then(() => {
-    console.log("hello1")
+await example.execute("test2").then((buf: SharedArrayBuffer) => {
+    let arr = new Int32Array(buf);
+    console.log("hello1", new Int32Array(buf)[0])
 })
-example.execute("test2").then(() => {
-    console.log("hello2")
+
+await example.execute("test2").then((buf: SharedArrayBuffer) => {
+    console.log("hello2",  new Int32Array(buf)[0])
 })
-example.execute("test2").then(() => {
-    console.log("hello3")
+await example.execute("test2").then((buf: SharedArrayBuffer) => {
+    console.log("hello3",  new Int32Array(buf)[0])
+})
+
+example.terminateWorker()
+
+wrapper.restart()
+
+await example.execute("test2").then((buf: SharedArrayBuffer) => {
+    let arr = new Int32Array(buf);
+    console.log("hello4", new Int32Array(buf)[0])
 })
