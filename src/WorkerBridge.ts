@@ -29,6 +29,7 @@ export class WorkerBridge {
         return root;
     }
 
+    //@ts-ignore
     public workerBootstrap(self, bridgeStr) {
             self.uuidv4 = () => {
                 // @ts-ignore
@@ -55,6 +56,41 @@ export class WorkerBridge {
             }
     }
 
+    //@ts-ignore
+    public workerWasmBootstrap(self, bridgeStr, url, importWrapper) {
+        self.uuidv4 = () => {
+            // @ts-ignore
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+        
+        self._executionMap = {};
+        const workerBuff = importWrapper + bridgeStr + `
+            const res: Request = await fetch(url, {});
+
+            const bytes: ArrayBuffer = await res.arrayBuffer()
+            WebAssembly.instantiate(bytes, go.importObject).then(() = {
+                go.run(result.instance)
+            })
+        `;
+
+        const blob = new Blob(
+            [workerBuff],
+            {type: 'application/typescript'},
+        );
+        const objUrl = URL.createObjectURL(blob);                 
+        self.worker = new Worker(objUrl, {deno: true, type: "module"});
+        self.worker.onmessage = (e) => {
+            if(!self._executionMap[e.data.id]) {
+                return
+            }
+            const context = self._executionMap[e.data.id]
+            context.promise && context.resolve(e.data.buffer)
+            delete self._executionMap[e.data.id]
+        }
+    }
+    
     private _workerBootstrap(): string {
         return `
                 function uuidv4() {
