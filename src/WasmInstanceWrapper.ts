@@ -52,7 +52,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
         const textDecoder = new TextDecoder();
         let fd = Deno.openSync(this._instance.ModulePath)
         let module = Deno.readAllSync(fd)
-        let execFd = Deno.readTextFileSync("./src/wasm_exec.js")
+        let execFd = Deno.readTextFileSync("./lib/wasm_exec.js")
 
         this.workerString = `
             ${execFd}

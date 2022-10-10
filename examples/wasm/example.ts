@@ -1,18 +1,20 @@
-import { InstanceWrapper, WorkerDefinition } from "./src/InstanceWrapper.ts";
+import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/WasmInstanceWrapper.ts";
+import { sleep } from "https://deno.land/x/sleep/mod.ts";
+class Example extends WasmWorkerDefinition {
 
-class Example extends WorkerDefinition {
-
-    public constructor() {
-        super();
+    public constructor(modulePath: string) {
+        super(modulePath);
     }
 
-    public test2(buffer: SharedArrayBuffer) {
+    public test2(buffer: SharedArrayBuffer, module: any) {
         let arr = new Int8Array(buffer);
         arr[0] += 1
+        //@ts-ignore
+        self.primeGenerator()
         return arr.buffer
     }
     
-   public test1(buffer: SharedArrayBuffer) {
+   public test1(buffer: SharedArrayBuffer, module: any) {
         let arr = new Int32Array(buffer);
         var myString = 'A rather long string of English text, an error message \
                 actually that just keeps going and going -- an error \
@@ -33,19 +35,17 @@ class Example extends WorkerDefinition {
     }
 }
 
-const example: WorkerDefinition = new Example();
+const example: WasmWorkerDefinition = new Example("./examples/wasm/prime.wasm");
 
-const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example as Example, {
+const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example as Example, {
     outputPath: 'output'
 });
 
 wrapper.start();
-
 //@ts-ignore
 await example.execute("test1").then((buf: SharedArrayBuffer) => {
     console.log("hello", new Int32Array(buf))
 })
-
 await example.execute("test2").then((buf: SharedArrayBuffer) => {
     let arr = new Int32Array(buf);
     console.log("hello1", new Int32Array(buf)[0])
@@ -56,13 +56,6 @@ await example.execute("test2").then((buf: SharedArrayBuffer) => {
 })
 await example.execute("test2").then((buf: SharedArrayBuffer) => {
     console.log("hello3",  new Int32Array(buf)[0])
-})
+});
 
 example.terminateWorker()
-
-wrapper.restart()
-
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-    let arr = new Int32Array(buf);
-    console.log("hello4", new Int32Array(buf)[0])
-})
