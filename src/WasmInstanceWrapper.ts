@@ -30,7 +30,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
     private _wb: WorkerBridge | undefined;
 
     private _wasmModule: WebAssembly.WebAssemblyInstantiatedSource | undefined
-    
+    private workerString = "";
     private mod: any
 
     constructor(instance: T, config: InstanceConfiguration) {
