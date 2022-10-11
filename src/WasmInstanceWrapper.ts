@@ -64,7 +64,6 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             var uint8 = new Uint8Array(buffer);
 
             self.setInterval(() => {
-                console.log(execData.length)
                 if (execData.length > 0 && workerState == "READY") {
                     const task = execData.shift()
                     let buff = _execMap[task.name](task.buffer, self['mod'])
@@ -88,10 +87,8 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
         this.workerString += `
             ]);
             WebAssembly.instantiate(uint8, self['mod'].importObject).then((module) => {
-                console.log("Done loading wasm module");
                 workerState = "READY"
                 self.mod.run(module.instance).then(() => {
-                    console.log("Module has left scope");
                 })
             });
         `;
@@ -103,6 +100,10 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             this._instance.execMap[(w as any)._name] = w
         }
         
+        this?._wb?.workerBootstrap(this._instance, this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
+    }
+
+    public restart() {
         this?._wb?.workerBootstrap(this._instance, this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 

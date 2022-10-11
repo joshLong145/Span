@@ -10,7 +10,7 @@ class Example extends WasmWorkerDefinition {
         let arr = new Int8Array(buffer);
         arr[0] += 1
         //@ts-ignore
-        self.primeGenerator()
+        //self.primeGenerator()
         return arr.buffer
     }
     
@@ -37,7 +37,7 @@ class Example extends WasmWorkerDefinition {
 
 const example: WasmWorkerDefinition = new Example("./examples/wasm/prime.wasm");
 
-const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example as Example, {
+const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example, {
     outputPath: 'output'
 });
 
@@ -59,3 +59,14 @@ await example.execute("test2").then((buf: SharedArrayBuffer) => {
 });
 
 example.terminateWorker()
+
+wrapper.restart()
+
+await example.execute("test1").then((buf: SharedArrayBuffer) => {
+    console.log("hello", new Int32Array(buf))
+})
+
+await example.execute("test2").then((buf: SharedArrayBuffer) => {
+    let arr = new Int32Array(buf);
+    console.log("hello1", new Int32Array(buf)[0])
+})
