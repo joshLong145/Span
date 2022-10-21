@@ -152,5 +152,4 @@ export class WorkerBridge {
         const wrappers = this._workerWrappers();
         return `${bufferAlloc}\n${wrappers}`
     }
-
 };
