@@ -17,8 +17,13 @@ export class WorkerManager {
     }
 
     public CreateOnMessageHandler(): string {
-        return `self.onmessage = (e) => {
-            execData.push(e.data)
+        return `onmessage = (e) => {
+            let buff = _execMap[e.data.name](e.data.buffer)
+            postMessage({
+                name: e.data.name,
+                buffer: buff,
+                id: e.data.id
+            })
         }`;
     }
 }
