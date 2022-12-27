@@ -26,4 +26,12 @@ export class WorkerManager {
             })
         }`;
     }
+
+    public CreateOnMessageWasmHandler(): string {
+        return `
+onmessage = (e) => {
+    execData.push(e.data);
+}
+`;
+}
 }

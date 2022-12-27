@@ -1,14 +1,14 @@
-
-export declare type WorkerMethod = (buffer: ArrayBuffer) => ArrayBuffer
+export declare type WorkerMethod = (buffer: ArrayBuffer, ...args: any[]) => ArrayBuffer;
 
 export class WorkerWrapper {
     private _worker: WorkerMethod;
-    
+
     constructor(method: WorkerMethod) {
         this._worker = method;
     }
+
     get WorkerName() {
-        return this._worker.name
+        return this._worker.name;
     }
 
     private _serializeWorker(): string {
