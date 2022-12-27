@@ -1,11 +1,11 @@
-import { InstanceConfiguration, WorkerDefinition } from "./InstanceWrapper.ts";
+import { DiskIOProvider, InstanceConfiguration, WorkerDefinition } from "./InstanceWrapper.ts";
 import { WorkerBridge } from "./WorkerBridge.ts";
 import { WorkerManager } from "./WorkerManager.ts";
-import { WorkerWrapper } from "./WorkerWrapper.ts";
+import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
 
 export class WasmWorkerDefinition {
     public execMap: Record<string, Function> = {};
-    public worker: Worker = undefined;
+    public worker: Worker| undefined = undefined;
     public ModulePath: string;
     private workerString: string = "";
 
@@ -18,7 +18,7 @@ export class WasmWorkerDefinition {
     }
 
     public terminateWorker() {
-        this.worker.terminate();
+        this.worker?.terminate();
     }
 }
 
@@ -43,7 +43,8 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
         const keys = Reflect.ownKeys(Object.getPrototypeOf(this._instance))
         const wrps: WorkerWrapper[] = []
         for (const key of keys) {
-            key !== "constructor" && wrps.push(new WorkerWrapper(this._instance[key]))
+            //@ts-ignore
+            key !== "constructor" && wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod))
         }
 
         this._wm = new WorkerManager(wrps);
@@ -52,7 +53,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
         const textDecoder = new TextDecoder();
         let fd = Deno.openSync(this._instance.ModulePath)
         let module = Deno.readAllSync(fd)
-        let execFd = Deno.readTextFileSync("./lib/wasm_exec_tiny.js")
+        let execFd = Deno.readTextFileSync("./lib/wasm_exec.js")
 
         this.workerString = `
             ${execFd}
@@ -62,11 +63,11 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             self['mod'] = new Go();
             var buffer = new ArrayBuffer(${module.length});
             var uint8 = new Uint8Array(buffer);
-
+            
             self.setInterval(() => {
                 if (execData.length > 0 && workerState == "READY") {
-                    const task = execData.shift()
-                    let buff = _execMap[task.name](task.buffer, self['mod'])
+                    const task = execData.shift();
+                    let buff = _execMap[task.name](task.buffer, self["mod"], task.args);
                     postMessage({
                         name: task.name,
                         buffer: buff,
@@ -75,6 +76,8 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
                 }
             }, 10)
 
+            ${this?._wm?.CreateOnMessageWasmHandler()}
+            
             uint8.set([
         `;
         for (let i = 0; i < module.length; i ++) {
@@ -84,15 +87,17 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             }
             this.workerString += module[i] + ',';
         }
+        
         this.workerString += `
             ]);
             WebAssembly.instantiate(uint8, self['mod'].importObject).then((module) => {
+                self.mod.run(module.instance)
                 workerState = "READY"
-                self.mod.run(module.instance).then(() => {
-                })
+                console.log("ready")
             });
         `;
     }
+
     public start() {
         this?._wb?.bufferMap(this._instance);
         const ww = this?._wb?.workerWrappers(this._instance);
@@ -100,11 +105,30 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             this._instance.execMap[(w as any)._name] = w
         }
         
-        this?._wb?.workerBootstrap(this._instance, this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
+        this?._wb?.workerBootstrap(
+            this._instance, 
+            this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 
+    public Create(provider: DiskIOProvider): void {
+        this._generate();
+
+        const byteEncoder = new TextEncoder();
+        provider.writeFileSync(this._config.outputPath + "/worker.js",
+            byteEncoder.encode(`
+${this.workerString}\n
+${this?._wm?.CreateWorkerMap()}\n
+            `)
+        );
+        provider.writeFileSync(this._config.outputPath + "/bridge.js",
+            byteEncoder.encode(`${this?._wb?.createBridge()}`)
+        );
+    }
+    
     public restart() {
-        this?._wb?.workerBootstrap(this._instance, this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
+        this?._wb?.workerBootstrap(
+            this._instance,
+            this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 
     
