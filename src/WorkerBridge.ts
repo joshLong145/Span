@@ -76,7 +76,7 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
             return
         }
         const context = _executionMap[e.data.id]
-        context.promise && context.resolve()
+        context.promise && context.resolve(e.data.res)
         delete _executionMap[e.data.id]
     }
 });
@@ -136,7 +136,7 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
                     buffer: _bufferMap["${worker.WorkerName}"],
                     args
                 })
-                await prms;
+                return prms;
             }\n`;
         }
         return root;

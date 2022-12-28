@@ -67,11 +67,12 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             self.setInterval(() => {
                 if (execData.length > 0 && workerState == "READY") {
                     const task = execData.shift();
-                    let buff = _execMap[task.name](task.buffer, self["mod"], task.args);
+                    let res = _execMap[task.name](task.buffer, self["mod"], task.args);
                     postMessage({
                         name: task.name,
-                        buffer: buff,
-                        id: task.id
+                        buffer: task.buffer,
+                        id: task.id,
+                        res
                     })
                 }
             }, 10)
