@@ -6,4 +6,11 @@
     <BODY>
         Hello World!!
     </BODY>
+    <script>
+        setTimeout( async () => {
+            await init();
+            const res = await createRegistrationOptions({name: "foo"});
+            console.log("result: ", JSON.parse(res));
+        }, 1000);
+    </script>
 </HTML>

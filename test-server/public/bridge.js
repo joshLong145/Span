@@ -27,7 +27,7 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
             return
         }
         const context = _executionMap[e.data.id]
-        context.promise && context.resolve()
+        context.promise && context.resolve(e.data.res)
         delete _executionMap[e.data.id]
     }
 });
@@ -50,7 +50,7 @@ async function init(args) {
                     buffer: _bufferMap["init"],
                     args
                 })
-                await prms;
+                return prms;
             }
 async function createRegistrationOptions(args) {
                 let promiseResolve, promiseReject;
@@ -70,7 +70,7 @@ async function createRegistrationOptions(args) {
                     buffer: _bufferMap["createRegistrationOptions"],
                     args
                 })
-                await prms;
+                return prms;
             }
 async function finishRegistration(args) {
                 let promiseResolve, promiseReject;
@@ -90,5 +90,5 @@ async function finishRegistration(args) {
                     buffer: _bufferMap["finishRegistration"],
                     args
                 })
-                await prms;
+                return prms;
             }
