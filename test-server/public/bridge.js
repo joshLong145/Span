@@ -1,13 +1,5 @@
 
-        const _bufferMap = {}
-        
-            _bufferMap["init"] = new SharedArrayBuffer(1024);
-
-            
-            _bufferMap["createRegistrationOptions"] = new SharedArrayBuffer(1024);
-
-            
-            _bufferMap["finishRegistration"] = new SharedArrayBuffer(1024);
+ const _bufferMap = {}
 
             
 
@@ -88,6 +80,46 @@ async function finishRegistration(args) {
                     name: "finishRegistration",
                     id: id,
                     buffer: _bufferMap["finishRegistration"],
+                    args
+                })
+                return prms;
+            }
+async function profileStart(args) {
+                let promiseResolve, promiseReject;
+                const id = uuidv4()
+                const prms = new Promise((resolve, reject) => {
+                    promiseResolve = resolve
+                    promiseReject = reject
+                });
+                _executionMap[id] = {
+                    promise: prms,
+                    resolve: promiseResolve,
+                    reject: promiseReject,
+                }
+                worker.postMessage({
+                    name: "profileStart",
+                    id: id,
+                    buffer: _bufferMap["profileStart"],
+                    args
+                })
+                return prms;
+            }
+async function profileEnd(args) {
+                let promiseResolve, promiseReject;
+                const id = uuidv4()
+                const prms = new Promise((resolve, reject) => {
+                    promiseResolve = resolve
+                    promiseReject = reject
+                });
+                _executionMap[id] = {
+                    promise: prms,
+                    resolve: promiseResolve,
+                    reject: promiseReject,
+                }
+                worker.postMessage({
+                    name: "profileEnd",
+                    id: id,
+                    buffer: _bufferMap["profileEnd"],
                     args
                 })
                 return prms;
