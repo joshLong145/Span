@@ -8,7 +8,7 @@
             "request": "launch",
             "name": "Launch Program",
             "type": "pwa-node",
-            "program": "${workspaceFolder}/example.ts",
+            "program": "${workspaceFolder}examples/wasm/example.ts",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "/opt/homebrew/bin/deno",
             "runtimeArgs": [

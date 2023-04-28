@@ -1,4 +1,4 @@
-import { InstanceWrapper, WorkerDefinition } from "./../../src/InstanceWrapper.ts";
+import { InstanceConfiguration, InstanceWrapper, WorkerDefinition } from "./../../src/InstanceWrapper.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
 class Example extends WorkerDefinition {
 
@@ -29,15 +29,18 @@ class Example extends WorkerDefinition {
             }
             arr[index] = hash
         }
+
+        console.log(Deno.cwd());
         return arr.buffer;
     }
 }
 
 const example: WorkerDefinition = new Example();
 
-const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
-    outputPath: 'output'
-});
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example as Example, {
+    outputPath: 'output',
+    namespace: 'test'
+} as InstanceConfiguration);
 
 wrapper.start();
 //@ts-ignore
@@ -57,8 +60,10 @@ await example.execute("test2").then((buf: SharedArrayBuffer) => {
 });
 
 example.terminateWorker()
+console.log("working terminated");
 
 wrapper.restart()
+console.log("restarted worker");
 
 await example.execute("test1").then((buf: SharedArrayBuffer) => {
     console.log("hello", new Int32Array(buf))

@@ -4,6 +4,7 @@ import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export interface InstanceConfiguration {
     outputPath: string
+    namespace: string
 }
 
 export interface DiskIOProvider {
@@ -12,7 +13,7 @@ export interface DiskIOProvider {
 
 export class WorkerDefinition {
     public execMap: Record<string, Function> = {};
-    public worker: Worker = undefined;
+    public worker: Worker | undefined = undefined;
     constructor() {}
 
     public execute(name: string): Promise<SharedArrayBuffer> {
@@ -20,7 +21,7 @@ export class WorkerDefinition {
     }
 
     public terminateWorker() {
-        this.worker.terminate();
+        this.worker?.terminate();
     }
 }
 
@@ -45,7 +46,10 @@ export class InstanceWrapper<T extends WorkerDefinition> {
         }
 
         this._wm = new WorkerManager(wrps);
-        this._wb = new WorkerBridge(wrps);
+        this._wb = new WorkerBridge({
+            workers: wrps,
+            namespace: this._config.namespace,
+        });
     }
 
 

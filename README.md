@@ -12,7 +12,7 @@ Should not be used in production.
 
 
 ## Example JS
-```
+```javascript
 class Example extends WorkerDefinition {
 
     public constructor() {
@@ -60,7 +60,7 @@ wrapper.Create({
 
 
 Usage of generated code
-```
+```javascript
     import {foo} from '<path/to.bridge.js>'
     await foo().then(() => {
         console.log("bar");
@@ -68,7 +68,7 @@ Usage of generated code
 ```
 
 Usage in process (uses example from above)
-```
+```javascript
 const example: WorkerDefinition = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
@@ -79,7 +79,7 @@ wrapper.start();
 ```
 
 Invoking
-```
+```javascript
 await example.execute("test1").then(() => {
     console.log("hello")
 })
