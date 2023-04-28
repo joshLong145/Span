@@ -1,5 +1,19 @@
 
- const _bufferMap = {}
+        const _bufferMap = {}
+        
+            _bufferMap["init"] = new SharedArrayBuffer(1024);
+
+            
+            _bufferMap["createRegistrationOptions"] = new SharedArrayBuffer(1024);
+
+            
+            _bufferMap["finishRegistration"] = new SharedArrayBuffer(1024);
+
+            
+            _bufferMap["profileStart"] = new SharedArrayBuffer(1024);
+
+            
+            _bufferMap["profileEnd"] = new SharedArrayBuffer(1024);
 
             
 
@@ -24,7 +38,7 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
     }
 });
         
-async function init(args) {
+const Webauthn = {"init": async function init(args) {
                 let promiseResolve, promiseReject;
                 const id = uuidv4()
                 const prms = new Promise((resolve, reject) => {
@@ -43,8 +57,8 @@ async function init(args) {
                     args
                 })
                 return prms;
-            }
-async function createRegistrationOptions(args) {
+            },
+"createRegistrationOptions": async function createRegistrationOptions(args) {
                 let promiseResolve, promiseReject;
                 const id = uuidv4()
                 const prms = new Promise((resolve, reject) => {
@@ -63,8 +77,8 @@ async function createRegistrationOptions(args) {
                     args
                 })
                 return prms;
-            }
-async function finishRegistration(args) {
+            },
+"finishRegistration": async function finishRegistration(args) {
                 let promiseResolve, promiseReject;
                 const id = uuidv4()
                 const prms = new Promise((resolve, reject) => {
@@ -83,8 +97,8 @@ async function finishRegistration(args) {
                     args
                 })
                 return prms;
-            }
-async function profileStart(args) {
+            },
+"profileStart": async function profileStart(args) {
                 let promiseResolve, promiseReject;
                 const id = uuidv4()
                 const prms = new Promise((resolve, reject) => {
@@ -103,8 +117,8 @@ async function profileStart(args) {
                     args
                 })
                 return prms;
-            }
-async function profileEnd(args) {
+            },
+"profileEnd": async function profileEnd(args) {
                 let promiseResolve, promiseReject;
                 const id = uuidv4()
                 const prms = new Promise((resolve, reject) => {
@@ -123,4 +137,5 @@ async function profileEnd(args) {
                     args
                 })
                 return prms;
-            }
+            },
+}

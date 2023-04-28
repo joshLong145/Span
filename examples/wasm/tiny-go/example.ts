@@ -1,18 +1,20 @@
-import { InstanceConfiguration, InstanceWrapper, WorkerDefinition } from "./../../src/InstanceWrapper.ts";
+import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/WasmInstanceWrapper.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
-class Example extends WorkerDefinition {
+class Example extends WasmWorkerDefinition {
 
-    public constructor() {
-        super()
+    public constructor(modulePath: string) {
+        super(modulePath);
     }
 
-    public test2(buffer: SharedArrayBuffer) {
+    public test2(buffer: SharedArrayBuffer, module: any) {
         let arr = new Int8Array(buffer);
         arr[0] += 1
+        //@ts-ignore
+        self.primeGenerator()
         return arr.buffer
     }
     
-   public test1(buffer: SharedArrayBuffer) {
+   public test1(buffer: SharedArrayBuffer, module: any) {
         let arr = new Int32Array(buffer);
         var myString = 'A rather long string of English text, an error message \
                 actually that just keeps going and going -- an error \
@@ -29,18 +31,16 @@ class Example extends WorkerDefinition {
             }
             arr[index] = hash
         }
-
-        console.log(Deno.cwd());
         return arr.buffer;
     }
 }
 
-const example: WorkerDefinition = new Example();
+const example: WasmWorkerDefinition = new Example("./examples/wasm/tiny-go/primes-2.wasm");
 
-const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example as Example, {
+const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example as Example, {
     outputPath: 'output',
-    namespace: 'test'
-} as InstanceConfiguration);
+    namespace: "asd"
+});
 
 wrapper.start();
 //@ts-ignore
@@ -60,10 +60,8 @@ await example.execute("test2").then((buf: SharedArrayBuffer) => {
 });
 
 example.terminateWorker()
-console.log("working terminated");
 
 wrapper.restart()
-console.log("restarted worker");
 
 await example.execute("test1").then((buf: SharedArrayBuffer) => {
     console.log("hello", new Int32Array(buf))

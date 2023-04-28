@@ -13,8 +13,8 @@ export class WasmWorkerDefinition {
         this.ModulePath = modulePath;
     }
 
-    public execute(name: string): Promise<SharedArrayBuffer> {
-        return this.execMap[name]()
+    public execute(name: string, options?: any): Promise<SharedArrayBuffer> {
+        return this.execMap[name](options);
     }
 
     public terminateWorker() {
@@ -46,14 +46,15 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             //@ts-ignore
             key !== "constructor" && wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod))
         }
-
         this._wm = new WorkerManager(wrps);
-        this._wb = new WorkerBridge(wrps);
-        const textEncoder = new TextEncoder();
-        const textDecoder = new TextDecoder();
+        this._wb = new WorkerBridge({
+            workers: wrps,
+            namespace: this._config.namespace,
+        });
+
         let fd = Deno.openSync(this._instance.ModulePath)
         let module = Deno.readAllSync(fd)
-        let execFd = Deno.readTextFileSync("./lib/wasm_exec.js")
+        let execFd = Deno.readTextFileSync("./lib/wasm_exec_tiny.js")
 
         this.workerString = `
             ${execFd}
@@ -111,7 +112,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
             this.workerString + '\n' + this?._wm?.CreateWorkerMap() + '\n' + this?._wm?.CreateOnMessageHandler());
     }
 
-    public Create(provider: DiskIOProvider): void {
+    public create(provider: DiskIOProvider): void {
         this._generate();
 
         const byteEncoder = new TextEncoder();

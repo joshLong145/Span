@@ -3,7 +3,7 @@ import { sleep } from "https://deno.land/x/sleep/mod.ts";
 class Example extends WasmWorkerDefinition {
 
     public constructor(modulePath: string, logLevel: number) {
-        super(modulePath, logLevel);
+        super(modulePath);
     }
 
     public init(buffer: SharedArrayBuffer, module: any) {
@@ -88,12 +88,13 @@ class Example extends WasmWorkerDefinition {
     }
 }
 
-const example: WasmWorkerDefinition = new Example("./examples/wasm/main.wasm", 1);
+const example: WasmWorkerDefinition = new Example("./examples/wasm/webauthn-server/main.wasm", 1);
 
 const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example as Example, {
-    outputPath: 'test-server/public'
+    outputPath: 'test-server/public',
+    namespace: "Webauthn",
 });
 
-wrapper.Create({
+wrapper.create({
     writeFileSync: Deno.writeFileSync
 });

@@ -1,10 +1,18 @@
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 
-export class WorkerBridge {
-    private _workers: WorkerWrapper[]
 
-    constructor(workers: WorkerWrapper[]){
-        this._workers = workers;
+export interface BridgeConfiguration {
+    namespace: string
+    workers: WorkerWrapper[]
+}
+
+export class WorkerBridge {
+    private _workers: WorkerWrapper[];
+    private _namespace: string;
+
+    constructor(config: BridgeConfiguration){
+        this._workers = config.workers;
+        this._namespace = config.namespace;
     }
 
     public bufferMap(self: any): void  {
@@ -114,11 +122,11 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
     }
 
     private _workerWrappers(): string {
-        let root = '';
+        let root = `const ${this._namespace} = {`;
 
         for (const worker of this._workers) {
 
-            root += `async function ${worker.WorkerName}(args) {
+            root += `"${worker.WorkerName}": async function ${worker.WorkerName}(args) {
                 let promiseResolve, promiseReject;
                 const id = uuidv4()
                 const prms = new Promise((resolve, reject) => {
@@ -137,8 +145,10 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
                     args
                 })
                 return prms;
-            }\n`;
+            },\n`;
         }
+
+        root += '}';
         return root;
     }
 
