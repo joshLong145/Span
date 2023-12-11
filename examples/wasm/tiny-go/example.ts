@@ -1,4 +1,4 @@
-import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/WasmInstanceWrapper.ts";
+import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../../src/WasmInstanceWrapper.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
 class Example extends WasmWorkerDefinition {
 
