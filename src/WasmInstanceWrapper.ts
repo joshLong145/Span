@@ -1,4 +1,4 @@
-import { DiskIOProvider, InstanceConfiguration, WorkerDefinition } from "./InstanceWrapper.ts";
+import { DiskIOProvider, InstanceConfiguration } from "./InstanceWrapper.ts";
 import { WorkerBridge } from "./WorkerBridge.ts";
 import { WorkerManager } from "./WorkerManager.ts";
 import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
