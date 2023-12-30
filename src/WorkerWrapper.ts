@@ -1,21 +1,24 @@
-export declare type WorkerMethod = (buffer: ArrayBuffer, ...args: any[]) => ArrayBuffer;
+export declare type WorkerMethod = (
+  buffer: SharedArrayBuffer,
+  module: Record<string, any>,
+) => ArrayBuffer;
 
 export class WorkerWrapper {
-    private _worker: WorkerMethod;
+  private _worker: WorkerMethod;
 
-    constructor(method: WorkerMethod) {
-        this._worker = method;
-    }
+  constructor(method: WorkerMethod) {
+    this._worker = method;
+  }
 
-    get WorkerName() {
-        return this._worker.name;
-    }
+  get WorkerName() {
+    return this._worker.name;
+  }
 
-    private _serializeWorker(): string {
-        return `function ${this._worker.toString()}`;
-    }
+  private _serializeWorker(): string {
+    return `function ${this._worker.toString()}`;
+  }
 
-    public CreateExecMapping(): string {
-        return `"${this.WorkerName}": ${this._serializeWorker()},`;
-    }
-};
+  public CreateExecMapping(): string {
+    return `"${this.WorkerName}": ${this._serializeWorker()},`;
+  }
+}

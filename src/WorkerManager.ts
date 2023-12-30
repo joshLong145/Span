@@ -1,37 +1,42 @@
-import { WorkerWrapper} from "./WorkerWrapper.ts";
+import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export class WorkerManager {
-    private _workers: WorkerWrapper[]
+  private _workers: WorkerWrapper[];
 
-    constructor(workers: WorkerWrapper[]) {
-        this._workers = workers;
-    }
+  constructor(workers: WorkerWrapper[]) {
+    this._workers = workers;
+  }
 
-    public CreateWorkerMap(): string {
-        var root: string = 'const _execMap = {\n'
-        this._workers.forEach(worker => {
-            root += `${worker.CreateExecMapping()}\n`
-        });
-        root += "}\n";
-        return root
-    }
+  public CreateWorkerMap(): string {
+    let root = "const _execMap = {\n";
+    this._workers.forEach((worker) => {
+      root += `${worker.CreateExecMapping()}\n`;
+    });
+    root += "}\n";
+    return root;
+  }
 
-    public CreateOnMessageHandler(): string {
-        return `onmessage = (e) => {
-            let buff = _execMap[e.data.name](e.data.buffer)
-            postMessage({
-                name: e.data.name,
-                buffer: buff,
-                id: e.data.id
-            })
-        }`;
-    }
+  public CreateOnMessageHandler(): string {
+    return `let workerState = "PENDING";
+            const execData = [];
+            self.setInterval(() => {
+              if (execData.length > 0 && workerState === "READY") {
+                  const task = execData.shift();
+                  let res = _execMap[task.name](task.buffer, self["mod"], task.args);
+                  postMessage({
+                      name: task.name,
+                      buffer: task.buffer,
+                      id: task.id,
+                      res,
+                      state: workerState,
+                  })
+              }
+          }, 1)
 
-    public CreateOnMessageWasmHandler(): string {
-        return `
-onmessage = (e) => {
-    execData.push(e.data);
-}
+          onmessage = (e) => {
+            console.log("pushing data into exec queue");
+            execData.push(e.data);
+          };            
 `;
-}
+  }
 }
