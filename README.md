@@ -1,7 +1,14 @@
 # Another Web Worker Bridge Generator
 
-Allows for class definitions to be translated to awaitable function definitons which run in the same `Web Worker`
-Each function defined within a given class definition is passed an `SharedArrayBuffer` which can be used for caching execution state for later use. The goal of this project is to lower the barier to use webworkers within applications and provide an intuative abstraction for managing execution state and shared memory.
+<p align="center">
+  <img width="300px" height="300px" src="https://github.com/joshLong145/DenoWebWorkerBridge/tree/master/images/worker-friend.png" />
+</p>
+Allows for class definitions to be translated to awaitable function definitons
+which run in the same `Web Worker` Each function defined within a given class
+definition is passed an `SharedArrayBuffer` which can be used for caching
+execution state for later use. The goal of this project is to lower the barier
+to use webworkers within applications and provide an intuative abstraction for
+managing execution state and shared memory.
 
 Each function within a class definiton extending `WorkerDefinition` is given its own shared buffer instance which is acessible from the generated `bridge` the bridge exports all wrapper functions for the given definition.
 
