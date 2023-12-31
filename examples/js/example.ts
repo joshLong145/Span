@@ -5,60 +5,59 @@ class Example extends WorkerDefinition {
     super();
   }
 
-  public test2(
+  public addOne(
     buffer: SharedArrayBuffer,
-    module: Record<string, any>,
-  ): ArrayBuffer {
-    console.log("name ", module.name);
-    let arr = new Int8Array(buffer);
+    args: Record<string, any>,
+  ): SharedArrayBuffer {
+    console.log("param name value: ", args.name);
+    const arr = new Int8Array(buffer);
     arr[0] += 1;
-    return arr.buffer;
+    return buffer;
   }
 
-  public test1(
+  public fib(
     buffer: SharedArrayBuffer,
     module: Record<string, any>,
-  ): ArrayBuffer {
-    var i;
-    var fib = [0, 1]; // Initialize array!
+  ): SharedArrayBuffer {
+    let i;
+    const arr = new Uint8Array(buffer);
+    arr[0] = 0;
+    arr[1] = 1;
 
-    for (i = 2; i <= 1000; i++) {
-      // Next fibonacci number = previous + one before previous
-      // Translated to JavaScript:
-      fib[i] = fib[i - 2] + fib[i - 1];
-      console.log(fib[i]);
+    for (i = 2; i <= module.count; i++) {
+      arr[i] = arr[i - 2] + arr[i - 1];
+      console.log(arr[i]);
     }
+
+    return buffer;
   }
 }
 
-const example: WorkerDefinition = new Example();
+const example: Example = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
-  {
-    outputPath: "output",
-    namespace: "test",
-  } as InstanceConfiguration,
+  {} as InstanceConfiguration,
 );
 
 wrapper.start();
 
-await example.execute("test1").then((buf: SharedArrayBuffer) => {
-  console.log("hello", new Int32Array(buf));
-});
-await example.execute("test2", { name: "foo" }).then(
+await example.execute("addOne", { name: "foo" }).then(
   (buf: SharedArrayBuffer) => {
-    console.log("hello1", new Int32Array(buf)[0]);
+    console.log("add one result: ", new Int32Array(buf));
+  },
+);
+await example.execute("addOne", { name: "foo" }).then(
+  (buf: SharedArrayBuffer) => {
+    console.log("add one result ", new Int32Array(buf)[0]);
   },
 );
 
-await example.execute("test2", { name: "foo" }).then(
-  (buf: SharedArrayBuffer) => {
-    console.log("hello2", new Int32Array(buf)[0]);
+await example.execute("fib", { count: 10 }).then(
+  (buffer: SharedArrayBuffer) => {
+    console.log("fib result ", new Uint8Array(buffer));
+    console.log("last fib number", new Uint8Array(buffer)[10]);
   },
 );
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  console.log("hello3", new Int32Array(buf)[0]);
-});
 
 example.terminateWorker();

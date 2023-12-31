@@ -1,5 +1,3 @@
-//@ts-nocheck working out type problems
-
 import {
   DiskIOProvider,
   InstanceConfiguration,
@@ -10,16 +8,19 @@ import { WorkerManager } from "./WorkerManager.ts";
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export class WorkerDefinition {
-  public execMap: Record<string, () => Promise<SharedArrayBuffer>> = {};
+  public execMap: Record<
+    string,
+    (args: Record<string, any>) => Promise<SharedArrayBuffer>
+  > = {};
   public worker: Worker | undefined = undefined;
 
   constructor() {}
 
   public execute(
-    name: string,
+    name: keyof this,
     args: Record<string, any> = {},
   ): Promise<SharedArrayBuffer> {
-    return this.execMap[name](args);
+    return this.execMap[name as unknown as string](args);
   }
 
   public terminateWorker() {
@@ -27,11 +28,12 @@ export class WorkerDefinition {
   }
 }
 
-export class InstanceWrapper<T extends WorkerInstance> {
+export class InstanceWrapper<T extends WorkerInstance<T>> {
   private _config: InstanceConfiguration;
   private _instance: T;
   private _wm: WorkerManager | undefined;
-  private _wb: WorkerBridge | undefined;
+  private _wb: WorkerBridge<T> | undefined;
+  private _workerString = "";
 
   constructor(instance: T, config: InstanceConfiguration) {
     this._instance = instance;
@@ -42,7 +44,7 @@ export class InstanceWrapper<T extends WorkerInstance> {
   private _generate(): void {
     const keys = Reflect.ownKeys(
       Object.getPrototypeOf(this._instance),
-    ) as string[];
+    ) as [keyof T];
     const wrps: WorkerWrapper[] = [];
     for (const key of keys) {
       key !== "constructor" &&
@@ -52,10 +54,25 @@ export class InstanceWrapper<T extends WorkerInstance> {
     this._wm = new WorkerManager(wrps);
     this._wb = new WorkerBridge({
       workers: wrps,
-      namespace: this._config.namespace,
+      namespace: this._config?.namespace as string,
     });
+
+    let execFd = "";
+
+    for (const addon of this._config?.addons ?? []) {
+      const source = this._config.addonLoader
+        ? this._config.addonLoader(addon)
+        : "";
+      execFd = execFd ? `${execFd}\n${source}` : source;
+    }
+
+    this._workerString = execFd;
   }
 
+  /**
+   * Create the web worker, adds an instance of a Worker object to the given class instance.
+   * Current only supports the `onmessage` handler. but object may be accesed as the `worker` property
+   */
   public async start(): Promise<void> {
     this?._wb?.bufferMap(this._instance);
     const ww = this?._wb?.workerWrappers(this._instance) ?? [];
@@ -65,18 +82,24 @@ export class InstanceWrapper<T extends WorkerInstance> {
 
     await this?._wb?.workerBootstrap(
       this._instance,
-      this?._wm?.CreateWorkerMap() + "\n" + this?._wm?.CreateOnMessageHandler(),
+      this._workerString + "\n" + this?._wm?.CreateWorkerMap() + "\n" +
+        this?._wm?.CreateOnMessageHandler() + "\n" +
+        // tell the host we can start as this is done in the wasm instance wrapper
+        // this will allow the promise being awaited to resolve by the caller.
+        'postMessage({ready: true}); workerState = "READY";',
     );
   }
 
   public restart() {
     this?._wb?.workerBootstrap(
       this._instance,
-      this?._wm?.CreateWorkerMap() + "\n" + this?._wm?.CreateOnMessageHandler(),
+      this?._wm?.CreateWorkerMap() + "\n" +
+        this?._wm?.CreateOnMessageHandler() + "\n" +
+        'postMessage({ready: true}); workerState = "READY";',
     );
   }
 
-  public Create(provider: DiskIOProvider): void {
+  public create(provider: DiskIOProvider): void {
     const byteEncoder = new TextEncoder();
     provider.writeFileSync(
       "output/worker.js",

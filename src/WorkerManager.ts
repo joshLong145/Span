@@ -22,7 +22,7 @@ export class WorkerManager {
             self.setInterval(() => {
               if (execData.length > 0 && workerState === "READY") {
                   const task = execData.shift();
-                  let res = _execMap[task.name](task.buffer, self["mod"], task.args);
+                  let res = _execMap[task.name](task.buffer, task.args);
                   postMessage({
                       name: task.name,
                       buffer: task.buffer,
@@ -34,7 +34,6 @@ export class WorkerManager {
           }, 1)
 
           onmessage = (e) => {
-            console.log("pushing data into exec queue");
             execData.push(e.data);
           };            
 `;

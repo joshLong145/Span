@@ -20,8 +20,8 @@ export class WasmWorkerDefinition {
     this.ModulePath = modulePath;
   }
 
-  public execute(name: string, options?: any): Promise<SharedArrayBuffer> {
-    return this.execMap[name](options);
+  public execute(name: keyof this, options?: any): Promise<SharedArrayBuffer> {
+    return this.execMap[name as unknown as string](options);
   }
 
   public terminateWorker() {
@@ -29,7 +29,7 @@ export class WasmWorkerDefinition {
   }
 }
 
-export class WasmInstanceWrapper<T extends WasmWorkerInstance> {
+export class WasmInstanceWrapper<T extends WasmWorkerInstance<T>> {
   private _instance: T;
   private _config: InstanceConfiguration;
 
@@ -45,11 +45,12 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance> {
   }
 
   private _generate(): void {
-    const keys = Reflect.ownKeys(Object.getPrototypeOf(this._instance));
+    const keys = Reflect.ownKeys(Object.getPrototypeOf(this._instance)) as [
+      keyof T,
+    ];
     const wrps: WorkerWrapper[] = [];
     for (const key of keys) {
       key !== "constructor" &&
-        //@ts-ignore key into object is safe
         wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
     }
     this._wm = new WorkerManager(wrps);
@@ -65,7 +66,6 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance> {
     let execFd = "";
 
     for (const addon of this._config?.addons ?? []) {
-      console.log(addon);
       const source = this._config.addonLoader
         ? this._config.addonLoader(addon)
         : "";
@@ -90,9 +90,9 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance> {
     this.workerString += `
             ]);
             WebAssembly.instantiate(uint8, self['mod'].importObject).then((module) => {
+                // tell the host that we can start
                 self.mod.run(module.instance)
                 workerState = "READY";
-                console.log("ready");
                 postMessage({
                   ready: true
                 })
@@ -118,6 +118,12 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance> {
   }
 
   public create(provider: DiskIOProvider): void {
+    if (!this._config.outputPath) {
+      throw new Error(
+        "No output path provided in configuration, aborting generation",
+      );
+    }
+
     this._generate();
 
     const enc = new TextEncoder();

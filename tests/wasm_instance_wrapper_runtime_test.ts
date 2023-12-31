@@ -26,7 +26,7 @@ class TestExample extends WasmWorkerDefinition {
 }
 
 Deno.test("WASM Worker Should have wasm methods loaded from module", async () => {
-  const example: WasmWorkerDefinition = new TestExample(
+  const example: TestExample = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
@@ -68,7 +68,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from module", async () =>
 });
 
 Deno.test("WASM Worker method should correct pass arguments", async () => {
-  const example: WasmWorkerDefinition = new TestExample(
+  const example: TestExample = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 

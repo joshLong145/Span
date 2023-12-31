@@ -1,5 +1,3 @@
-//@ts-nocheck come back
-
 import {
   assertEquals,
   assertExists,
@@ -13,10 +11,11 @@ class TestExample extends WorkerDefinition {
 
   public foo(
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
-  ): ArrayBuffer {
-    buffer[0] += 1;
-    console.log(buffer[0]);
+    module: Record<string, any>,
+  ): SharedArrayBuffer {
+    let arr = new Uint8Array(buffer);
+    arr[0] += 1;
+    return buffer;
   }
 }
 
@@ -41,5 +40,6 @@ Deno.test("Worker Wrapper manager should be defined when started", () => {
   const wrapper = new InstanceWrapper<TestExample>(inst, {});
   wrapper.start();
   inst.terminateWorker();
+  //@ts-ignore is defined
   assertEquals(wrapper["_wm"]["_workers"].length, 1);
 });

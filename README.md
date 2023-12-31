@@ -11,9 +11,9 @@ execution state for later use. The goal of this project is to lower the barrier
 to use web workers within applications and provide an intuitive abstraction for
 managing execution state and shared memory.
 
-Each function within a class definition extending `WorkerDefinition` is given its
-own shared buffer instance which is accessible from the generated `bridge` the
-bridge exports all wrapper functions for the given definition.
+Each function within a class definition extending `WorkerDefinition` is given
+its own shared buffer instance which is accessible from the generated `bridge`
+the bridge exports all wrapper functions for the given definition.
 
 It's also possible to declare a `Web Assembly` file which can be interfaced with
 with in the worker context. Currently only supports `Golang` compiled WASM.
@@ -27,52 +27,107 @@ production.
 
 ```javascript
 class Example extends WorkerDefinition {
+  public constructor() {
+    super();
+  }
 
-    public constructor() {
-        super();
-    }
+  public addOne(
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer {
+    console.log("param name value: ", args.name);
+    const arr = new Int8Array(buffer);
+    arr[0] += 1;
+    return buffer;
+  }
 
-    public test2(buffer: SharedArrayBuffer) {
-        let arr = new Int8Array(buffer);
-        arr[0] = 1
-    
-        return arr
+  public fib(
+    buffer: SharedArrayBuffer,
+    module: Record<string, any>,
+  ): SharedArrayBuffer {
+    let i;
+    const arr = new Uint8Array(buffer);
+    arr[0] = 0;
+    arr[1] = 1;
+
+    for (i = 2; i <= module.count; i++) {
+      arr[i] = arr[i - 2] + arr[i - 1];
+      console.log(arr[i]);
     }
     
-   public test1(buffer: SharedArrayBuffer) {
-    let arr = new Int32Array(buffer);
-    var myString = 'A rather long string of English text, an error message \
-            actually that just keeps going and going -- an error \
-            message to make the Energizer bunny blush (right through \
-            those Schwarzenegger shades)! Where was I? Oh yes, \
-            you\'ve got an error and all the extraneous whitespace is \
-            just gravy.  Have a nice day.'
-    for (var index = 0; index < 2048; index++) {
-        let hash = 0;
-        for (let i = 0, len = myString.length; i < len; i++) {
-            let chr = myString.charCodeAt(i);
-            hash = (hash << 5) - hash + chr;
-            hash |= 0; // Convert to 32bit integer
-        }
-        arr[index] = hash
-    }
-    return arr;
-},
-    }
+    return buffer;
+  }
 }
 
-const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(new Example(), {
-    outputPath: 'output'
-});
+const example: Example = new Example();
 
-wrapper.Create({
-    writeFileSync: Deno.writeFileSync
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
+  example,
+  {} as InstanceConfiguration,
+);
+
+wrapper.start();
+
+await example.execute("addOne", {name: 'foo'}).then((buf: SharedArrayBuffer) => {
+  console.log("add one result: ", new Int32Array(buf));
+});
+await example.execute("addOne", { name: "foo" }).then(
+  (buf: SharedArrayBuffer) => {
+    console.log("add one result ", new Int32Array(buf)[0]);
+  },
+);
+
+await example.execute("fib", {count: 10}).then((buffer: SharedArrayBuffer) => {
+  console.log('fib result ', new Uint8Array(buffer));
+  console.log('last fib number', new Uint8Array(buffer)[10]);
 });
 ```
 
 Usage of generated code
 
 ```javascript
+class Example extends WorkerDefinition {
+  public constructor() {
+    super();
+  }
+
+  public addOne(
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer {
+    console.log("param name value: ", args.name);
+    const arr = new Int8Array(buffer);
+    arr[0] += 1;
+    return buffer;
+  }
+
+  public fib(
+    buffer: SharedArrayBuffer,
+    module: Record<string, any>,
+  ): SharedArrayBuffer {
+    let i;
+    const arr = new Uint8Array(buffer);
+    arr[0] = 0;
+    arr[1] = 1;
+
+    for (i = 2; i <= module.count; i++) {
+      arr[i] = arr[i - 2] + arr[i - 1];
+      console.log(arr[i]);
+    }
+    
+    return buffer;
+  }
+}
+const example: Example = new Example();
+
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
+  example,
+  {
+    outputPath: "/path/to/gen/output"
+  } as InstanceConfiguration,
+);
+
+wrapper.create();
 import { foo } from "<path/to.bridge.js>";
 await foo().then(() => {
   console.log("bar");
@@ -111,6 +166,10 @@ example.execute("test2").then(() => {
 
 # Example JS With WASM
 
+The below example uses a WASM module compiled from `Golang` using `tiny-go`.
+Below we provide the go WASM runtime as an `addon` and give a callback for
+loading the module at the given file path.
+
 ```javascript
 import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/WasmInstanceWrapper.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
@@ -120,70 +179,35 @@ class Example extends WasmWorkerDefinition {
         super(modulePath);
     }
 
-    public test2(buffer: SharedArrayBuffer, module: any) {
+    public test(buffer: SharedArrayBuffer, module: any) {
         let arr = new Int8Array(buffer);
         arr[0] += 1
         //@ts-ignore
         self.primeGenerator()
         return arr.buffer
     }
-    
-   public test1(buffer: SharedArrayBuffer, module: any) {
-        let arr = new Int32Array(buffer);
-        var myString = 'A rather long string of English text, an error message \
-                actually that just keeps going and going -- an error \
-                message to make the Energizer bunny blush (right through \
-                those Schwarzenegger shades)! Where was I? Oh yes, \
-                you\'ve got an error and all the extraneous whitespace is \
-                just gravy.  Have a nice day.'
-        for (var index = 0; index < 2048; index++) {
-            let hash = 0;
-            for (let i = 0, len = myString.length; i < len; i++) {
-                let chr = myString.charCodeAt(i);
-                hash = (hash << 5) - hash + chr;
-                hash |= 0; // Convert to 32bit integer
-            }
-            arr[index] = hash
-        }
-        return arr.buffer;
-    }
 }
 
-const example: WasmWorkerDefinition = new Example("./examples/wasm/primes-2.wasm");
+const example: Example = new Example("./examples/wasm/primes-2.wasm");
 
 const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example, {
-    outputPath: 'output'
+     addons: [
+      "./lib/wasm_exec_tiny.js",
+    ],
+    addonLoader: (path: string) => {
+      return Deno.readTextFileSync(path);
+    },
+    moduleLoader: (path: string) => {
+      const fd = Deno.openSync(path);
+      return Deno.readAllSync(fd);
+    },
 });
 
 wrapper.start();
 //@ts-ignore
-await example.execute("test1").then((buf: SharedArrayBuffer) => {
-    console.log("hello", new Int32Array(buf))
-})
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-    let arr = new Int32Array(buf);
-    console.log("hello1", new Int32Array(buf)[0])
-})
-
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-    console.log("hello2",  new Int32Array(buf)[0])
-})
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-    console.log("hello3",  new Int32Array(buf)[0])
+await example.execute("test").then((buf: SharedArrayBuffer) => {
+    console.log("buffer returned ", new Int32Array(buf))
 });
-
-example.terminateWorker()
-
-wrapper.restart()
-
-await example.execute("test1").then((buf: SharedArrayBuffer) => {
-    console.log("hello", new Int32Array(buf))
-})
-
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-    let arr = new Int32Array(buf);
-    console.log("hello1", new Int32Array(buf)[0])
-})
 
 example.terminateWorker();
 ```

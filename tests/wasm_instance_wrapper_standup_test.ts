@@ -1,4 +1,3 @@
-//@ts-nocheck
 import {
   assertEquals,
   assertExists,
@@ -17,18 +16,19 @@ class TestExample extends WasmWorkerDefinition {
     let arr = new Int8Array(buffer);
     arr[0] += 1;
 
+    //@ts-ignore method injection from wasm.
     self.primeGenerator();
     return arr.buffer;
   }
 }
 
 Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", () => {
-  const example: WasmWorkerDefinition = new TestExample(
+  const example: TestExample = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
   const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -50,18 +50,19 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
   );
 
   example.terminateWorker();
+  //@ts-ignore is defined
   assertExists(wrapper, wrapper["config"]);
   assertEquals(wrapper["_config"].namespace, "asd");
   assertEquals(wrapper["_config"].addons, ["./lib/wasm_exec_tiny.js"]);
 });
 
 Deno.test("Wasm class members should be defined", () => {
-  const example: WasmWorkerDefinition = new TestExample(
+  const example: TestExample = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
   const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -89,7 +90,7 @@ Deno.test("Wasm class members should be defined", () => {
 });
 
 Deno.test("Wasm class should have correct worker number on start", () => {
-  const example: WasmWorkerDefinition = new TestExample(
+  const example: TestExample = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
@@ -118,11 +119,12 @@ Deno.test("Wasm class should have correct worker number on start", () => {
   wrapper.start();
   example.terminateWorker();
 
+  //@ts-ignore private members defined
   assertEquals(wrapper["_wm"]["_workers"].length, 1);
 });
 
 Deno.test("Wasm class ", () => {
-  const example: WasmWorkerDefinition = new TestExample(
+  const example: TestExample = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
@@ -151,5 +153,6 @@ Deno.test("Wasm class ", () => {
   wrapper.start();
   example.terminateWorker();
 
+  //@ts-ignore private members defined
   assertEquals(wrapper["_wm"]["_workers"].length, 1);
 });

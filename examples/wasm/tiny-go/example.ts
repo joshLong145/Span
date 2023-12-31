@@ -16,7 +16,10 @@ class Example extends WasmWorkerDefinition {
     return arr.buffer;
   }
 
-  public test1(buffer: SharedArrayBuffer, module: Record<string, any>) {
+  public test1(
+    buffer: SharedArrayBuffer,
+    module: Record<string, any>,
+  ): SharedArrayBuffer {
     let arr = new Int32Array(buffer);
     let myString = "A rather long string of English text, an error message \
                 actually that just keeps going and going -- an error \
@@ -33,11 +36,11 @@ class Example extends WasmWorkerDefinition {
       }
       arr[index] = hash;
     }
-    return arr.buffer;
+    return buffer;
   }
 }
 
-const example: WasmWorkerDefinition = new Example(
+const example: Example = new Example(
   "./examples/wasm/tiny-go/primes-2.wasm",
 );
 

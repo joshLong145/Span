@@ -1,5 +1,3 @@
-//@ts-nocheck come back
-
 import {
   assertEquals,
   assertExists,
@@ -13,18 +11,22 @@ class TestExample extends WorkerDefinition {
 
   public foo(
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
+    module: Record<string, any>,
   ): ArrayBuffer {
-    buffer = new Int8Array(buffer);
-    buffer[0] += 1;
-    console.log(buffer[0]);
-  }
-}
+    const arr = new Int8Array(buffer);
+    arr[0] += 1;
 
+    return buffer;
+  }
+
+  public bar() {}
+}
 Deno.test("Worker Wrapper manager should respect buffer when returned", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {});
-  wrapper.start();
+
+  await wrapper.start();
+
   await inst.execute("foo").then((buf) => {
     assertEquals(new Uint32Array(buf)[0], 1);
   });
@@ -32,5 +34,6 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
   await inst.execute("foo").then((buf) => {
     assertEquals(new Uint32Array(buf)[0], 2);
   });
+
   inst.terminateWorker();
 });

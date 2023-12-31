@@ -73,7 +73,6 @@ export class WorkerBridge<T> {
     self.worker = new Worker(objUrl, { deno: true, type: "module" });
     self.worker.onmessage = (e: MessageEvent<any>) => {
       if (e.data.ready) {
-        console.log("worker ready, module looaded");
         prmsRes();
       }
       if (!self._executionMap[e.data.id]) {
@@ -100,11 +99,7 @@ let workerState;
 const workerBuff = fetch("worker.js").then( async (resp) => {
     const blob = await resp.blob();
     const objUrl = URL.createObjectURL(blob);            
-    worker = new Worker(objUrl, {type: "module"}.then(() => {
-      postMessage({
-        ready: true
-      });
-    });
+    worker = new Worker(objUrl, {type: "module"}
 
     worker.onmessage = function(e) {
         if(!_executionMap[e.data.id]) {
