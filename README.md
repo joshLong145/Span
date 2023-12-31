@@ -1,7 +1,7 @@
 # A Web Worker Bridging Module
 
-<p align="center">
-  <img width="300px" height="300px" src="https://github.com/joshLong145/DenoWebWorkerBridge/tree/master/images/worker-friend.png" />
+<p align="center" dir="auto">
+   <a target="_blank" rel="noopener noreferrer" width="300px" height="300px" href="https://github.com/joshLong145/DenoWebWorkerBridge/tree/master/images/worker-friend.png"/>
 </p>
 Allows for class definitions to be translated to awaitable function definitons
 which run in the same `Web Worker` Each function defined within a given class
