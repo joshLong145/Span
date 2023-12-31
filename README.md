@@ -1,21 +1,22 @@
 # A Web Worker Bridging Module
 
 <p align="center">
-   <a target="_blank" rel="noopener noreferrer" width="300px" height="300px" href="https://github.com/joshLong145/DenoWebWorkerBridge/tree/master/images/worker-friend.png"> </a>
+  <img width="200px" height="200px" src="https://github.com/joshLong145/DenoWebWorkerBridge/blob/master/images/worker-friend.png?raw=true" />
 </p>
-Allows for class definitions to be translated to awaitable function definitons
+
+Allows for class definitions to be translated to awaitable function definitions
 which run in the same `Web Worker` Each function defined within a given class
 definition is passed an `SharedArrayBuffer` which can be used for caching
-execution state for later use. The goal of this project is to lower the barier
-to use webworkers within applications and provide an intuative abstraction for
+execution state for later use. The goal of this project is to lower the barrier
+to use web workers within applications and provide an intuitive abstraction for
 managing execution state and shared memory.
 
-Each function within a class definiton extending `WorkerDefinition` is given its
-own shared buffer instance which is acessible from the generated `bridge` the
+Each function within a class definition extending `WorkerDefinition` is given its
+own shared buffer instance which is accessible from the generated `bridge` the
 bridge exports all wrapper functions for the given definition.
 
 It's also possible to declare a `Web Assembly` file which can be interfaced with
-with in the worker context. Currently only supports `Golang` compiled wasm.
+with in the worker context. Currently only supports `Golang` compiled WASM.
 Support will be added for WASM compiled and instated through module exports
 shall be added.
 
