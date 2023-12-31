@@ -1,0 +1,13 @@
+{
+  "lock": "false",
+  "tasks": {
+    "fmt": "deno fmt",
+    "bench": "deno bench benchmark/ --unstable --no-check --allow-all",
+    "test": "deno test -A --parallel --trace-ops --no-check",
+    "ok": "deno fmt && deno task test",
+    "gen-npm": "deno run -A --no-check scripts/gen-npm.ts"
+  },
+  "exclude": [
+    "./examples/*.ts"
+  ]
+}

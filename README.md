@@ -1,4 +1,4 @@
-# Another Web Worker Bridge Generator
+# A Web Worker Bridging Module
 
 <p align="center">
   <img width="300px" height="300px" src="https://github.com/joshLong145/DenoWebWorkerBridge/tree/master/images/worker-friend.png" />
@@ -10,16 +10,21 @@ execution state for later use. The goal of this project is to lower the barier
 to use webworkers within applications and provide an intuative abstraction for
 managing execution state and shared memory.
 
-Each function within a class definiton extending `WorkerDefinition` is given its own shared buffer instance which is acessible from the generated `bridge` the bridge exports all wrapper functions for the given definition.
+Each function within a class definiton extending `WorkerDefinition` is given its
+own shared buffer instance which is acessible from the generated `bridge` the
+bridge exports all wrapper functions for the given definition.
 
-It's also possible to declare a `Web Assembly` file which can be interfaced with with in the worker context. Currently only supports `Golang` compiled wasm. Support will be added for WASM compiled and instated through module exports shall be added.
+It's also possible to declare a `Web Assembly` file which can be interfaced with
+with in the worker context. Currently only supports `Golang` compiled wasm.
+Support will be added for WASM compiled and instated through module exports
+shall be added.
 
-*Under development, still largely a work in progress*
-Should not be used in production.
-
+_Under development, still largely a work in progress_ Should not be used in
+production.
 
 ## Example JS
-```
+
+```javascript
 class Example extends WorkerDefinition {
 
     public constructor() {
@@ -62,20 +67,20 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(new Examp
 wrapper.Create({
     writeFileSync: Deno.writeFileSync
 });
-
 ```
-
 
 Usage of generated code
-```
-    import {foo} from '<path/to.bridge.js>'
-    await foo().then(() => {
-        console.log("bar");
-    })
+
+```javascript
+import { foo } from "<path/to.bridge.js>";
+await foo().then(() => {
+  console.log("bar");
+});
 ```
 
 Usage in process (uses example from above)
-```
+
+```javascript
 const example: WorkerDefinition = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
@@ -86,23 +91,25 @@ wrapper.start();
 ```
 
 Invoking
-```
+
+```javascript
 await example.execute("test1").then(() => {
-    console.log("hello")
-})
+  console.log("hello");
+});
 
 example.execute("test2").then(() => {
-    console.log("hello1")
-})
+  console.log("hello1");
+});
 example.execute("test2").then(() => {
-    console.log("hello2")
-})
+  console.log("hello2");
+});
 example.execute("test2").then(() => {
-    console.log("hello3")
-})
+  console.log("hello3");
+});
 ```
 
 # Example JS With WASM
+
 ```javascript
 import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/WasmInstanceWrapper.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
