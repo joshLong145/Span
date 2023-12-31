@@ -5,7 +5,7 @@ import {
 } from "./types.ts";
 import { WorkerBridge } from "./WorkerBridge.ts";
 import { WorkerManager } from "./WorkerManager.ts";
-import { WorkerWrapper } from "./WorkerWrapper.ts";
+import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
 
 export class WorkerDefinition {
   public execMap: Record<
@@ -28,14 +28,14 @@ export class WorkerDefinition {
   }
 }
 
-export class InstanceWrapper<T extends WorkerInstance<T>> {
+export class InstanceWrapper<T extends WorkerDefinition> {
   private _config: InstanceConfiguration;
-  private _instance: T;
+  private _instance: WorkerInstance<T>;
   private _wm: WorkerManager | undefined;
   private _wb: WorkerBridge<T> | undefined;
   private _workerString = "";
 
-  constructor(instance: T, config: InstanceConfiguration) {
+  constructor(instance: WorkerInstance<T>, config: InstanceConfiguration) {
     this._instance = instance;
     this._config = config;
     this._generate();
@@ -48,7 +48,7 @@ export class InstanceWrapper<T extends WorkerInstance<T>> {
     const wrps: WorkerWrapper[] = [];
     for (const key of keys) {
       key !== "constructor" &&
-        wrps.push(new WorkerWrapper(this._instance[key]));
+        wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
     }
 
     this._wm = new WorkerManager(wrps);
@@ -77,11 +77,11 @@ export class InstanceWrapper<T extends WorkerInstance<T>> {
     this?._wb?.bufferMap(this._instance);
     const ww = this?._wb?.workerWrappers(this._instance) ?? [];
     for (const w of ww) {
-      this._instance.execMap[(w as any)._name] = w;
+      (this._instance as WorkerDefinition).execMap[(w as any)._name] = w;
     }
 
     await this?._wb?.workerBootstrap(
-      this._instance,
+      this._instance as T,
       this._workerString + "\n" + this?._wm?.CreateWorkerMap() + "\n" +
         this?._wm?.CreateOnMessageHandler() + "\n" +
         // tell the host we can start as this is done in the wasm instance wrapper
@@ -92,7 +92,7 @@ export class InstanceWrapper<T extends WorkerInstance<T>> {
 
   public restart() {
     this?._wb?.workerBootstrap(
-      this._instance,
+      this._instance as T,
       this?._wm?.CreateWorkerMap() + "\n" +
         this?._wm?.CreateOnMessageHandler() + "\n" +
         'postMessage({ready: true}); workerState = "READY";',

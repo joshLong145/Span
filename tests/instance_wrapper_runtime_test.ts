@@ -18,9 +18,8 @@ class TestExample extends WorkerDefinition {
 
     return buffer;
   }
-
-  public bar() {}
 }
+
 Deno.test("Worker Wrapper manager should respect buffer when returned", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {});

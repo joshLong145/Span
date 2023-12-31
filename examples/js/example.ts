@@ -17,14 +17,14 @@ class Example extends WorkerDefinition {
 
   public fib(
     buffer: SharedArrayBuffer,
-    module: Record<string, any>,
+    args: Record<string, any>,
   ): SharedArrayBuffer {
     let i;
     const arr = new Uint8Array(buffer);
     arr[0] = 0;
     arr[1] = 1;
 
-    for (i = 2; i <= module.count; i++) {
+    for (i = 2; i <= args.count; i++) {
       arr[i] = arr[i - 2] + arr[i - 1];
       console.log(arr[i]);
     }

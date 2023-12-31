@@ -40,31 +40,32 @@ export interface DiskIOProvider {
   writeFileSync: (path: string | URL, data: Uint8Array) => void;
 }
 
-export type WorkerInstance<T extends WorkerDefinition> =
-  & WorkerDefinition
-  & WorkerFunctions<WorkerDefinition, T>;
-
 // Helper type to get R if V is callable, N otherwise
 // Typically to get `never` if V is not callable
 type KeepCallable<V, R = V, N = never> = V extends (...args: any) => any ? R
   : N;
 
-// Removes properties from a type which extend a given type.
-type FlagExcludedType<Base, Type> = {
-  [Key in keyof Base]: Base[Key] extends Type ? never : Key;
-};
+type BaseFunctionTypes<T> = (
+  name: keyof T,
+  args?: Record<string, any>,
+) => Promise<SharedArrayBuffer> | void;
 
-export type WorkerFunctions<B, T> = {
+export type WorkerFunctions<B, T extends B> = {
   [
     Key in keyof T as KeepCallable<
-      FlagExcludedType<B, T[Key]>,
+      T[Key],
       Key
     >
-  ]: WorkerMethod;
+  ]: B[Key extends keyof B ? Key : never] extends undefined ? WorkerMethod
+    : BaseFunctionTypes<T>;
 };
+
 export type WasmWorkerInstance<T extends WasmWorkerDefinition> =
-  & WasmWorkerDefinition
-  & WorkerFunctions<WasmWorkerDefinition, T>;
+  WorkerFunctions<WasmWorkerDefinition, T>;
+export type WorkerInstance<T extends WorkerDefinition> = WorkerFunctions<
+  WorkerDefinition,
+  T
+>;
 
 export declare type WorkerMethod = (
   buffer: SharedArrayBuffer,
