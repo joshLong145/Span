@@ -1,5 +1,8 @@
-# Another Web Worker Bridge Generator
+# A Web Worker Bridging Module
 
+<p align="center">
+  <img src="https://github.com/joshLong145/DenoWebWorkerBridge/tree/master/images/worker-friend.png" />
+</p>
 Allows for class definitions to be translated to awaitable function definitons
 which run in the same `Web Worker` Each function defined within a given class
 definition is passed an `SharedArrayBuffer` which can be used for caching
