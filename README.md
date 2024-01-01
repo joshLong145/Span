@@ -15,14 +15,13 @@ Each function within a class definition extending `WorkerDefinition` is given
 its own shared buffer instance which is accessible from the generated `bridge`
 the bridge exports all wrapper functions for the given definition.
 
-
 ## Running Web Assembly modules
+
 It's also possible to declare a `Web Assembly` file which can be interfaced with
 with in the worker context.
 
-Currently only supports `Golang` compiled WASM.
-Support will be added for WASM compiled and instated through module exports
-shall be added.
+Currently only supports `Golang` compiled WASM. Support will be added for WASM
+compiled and instated through module exports shall be added.
 
 _Under development, still largely a work in progress_ Should not be used in
 production.
@@ -138,7 +137,7 @@ await foo().then(() => {
 });
 ```
 
- ## Usage in process (uses example from above)
+## Usage in process (uses example from above)
 
 ```javascript
 const example: WorkerDefinition = new Example();

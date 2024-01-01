@@ -60,7 +60,9 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
     });
 
     const module = this._config.moduleLoader
-      ? this._config.moduleLoader((this._instance as WasmWorkerDefinition).ModulePath)
+      ? this._config.moduleLoader(
+        (this._instance as WasmWorkerDefinition).ModulePath,
+      )
       : "";
 
     let execFd = "";
