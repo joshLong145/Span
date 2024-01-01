@@ -14,7 +14,7 @@ export class WasmWorkerDefinition {
   > = {};
   public worker: Worker | undefined = undefined;
   public ModulePath: string;
-  private workerString: string = "";
+  private workerString = "";
 
   constructor(modulePath: string) {
     this.ModulePath = modulePath;
@@ -29,8 +29,8 @@ export class WasmWorkerDefinition {
   }
 }
 
-export class WasmInstanceWrapper<T extends WasmWorkerInstance<T>> {
-  private _instance: T;
+export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
+  private _instance: WasmWorkerInstance<T>;
   private _config: InstanceConfiguration;
 
   private _wm: WorkerManager | undefined;
@@ -38,7 +38,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance<T>> {
 
   private workerString = "";
 
-  constructor(instance: T, config: InstanceConfiguration) {
+  constructor(instance: WasmWorkerInstance<T>, config: InstanceConfiguration) {
     this._instance = instance;
     this._config = config;
     this._generate();
@@ -60,7 +60,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance<T>> {
     });
 
     const module = this._config.moduleLoader
-      ? this._config.moduleLoader(this._instance.ModulePath)
+      ? this._config.moduleLoader((this._instance as WasmWorkerDefinition).ModulePath)
       : "";
 
     let execFd = "";
@@ -107,11 +107,11 @@ export class WasmInstanceWrapper<T extends WasmWorkerInstance<T>> {
     this?._wb?.bufferMap(this._instance);
     const workers = this?._wb?.workerWrappers(this._instance) ?? [];
     for (const w of workers) {
-      this._instance.execMap[(w as any)._name] = w;
+      (this._instance as WasmWorkerDefinition).execMap[(w as any)._name] = w;
     }
 
     await this?._wb?.workerBootstrap(
-      this._instance,
+      this._instance as T,
       this.workerString + "\n" + this?._wm?.CreateWorkerMap() + "\n" +
         this?._wm?.CreateOnMessageHandler(),
     );
@@ -142,7 +142,7 @@ ${this?._wm?.CreateWorkerMap()}\n
 
   public restart() {
     this?._wb?.workerBootstrap(
-      this._instance,
+      this._instance as T,
       this.workerString + "\n" + this?._wm?.CreateWorkerMap() + "\n" +
         this?._wm?.CreateOnMessageHandler(),
     );
