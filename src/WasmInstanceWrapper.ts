@@ -76,7 +76,8 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
 
     this.workerString = `
             ${execFd}
-            self['mod'] = new Go();
+            self['mod'] = globalThis.Go ? new Go() : undefined;
+            let workerState = "PENDING";
             var buffer = new ArrayBuffer(${module.length});
             var uint8 = new Uint8Array(buffer);
             uint8.set([
@@ -91,14 +92,35 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
 
     this.workerString += `
             ]);
-            WebAssembly.instantiate(uint8, self['mod'].importObject).then((module) => {
+
+            if (typeof wasm_bindgen === "undefined") {
+              WebAssembly.instantiate(uint8, self['mod'] ? self['mod'].importObject : {}).then((module) => {
                 // tell the host that we can start
-                self.mod.run(module.instance)
+                self.mod && self.mod.run(module.instance);
+                self.module = module;
+                for (const key of Object.keys(self.module.instance.exports)) {
+                  self[key] = self.module.instance.exports[key];
+                }
                 workerState = "READY";
                 postMessage({
                   ready: true
                 })
-            });
+              });
+            } else {
+              console.log(wasm_bindgen);
+              wasm_bindgen && ((module) =>{
+                self.module = module;
+                self.module.initSync(uint8);
+                for (const key of Object.keys(self.module)) {
+                  self[key] = self.module[key];
+                }
+  
+                workerState = "READY";
+                postMessage({
+                  ready: true
+                });
+              })(wasm_bindgen);
+            }
         `;
   }
 

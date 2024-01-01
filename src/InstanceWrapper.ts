@@ -57,7 +57,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       namespace: this._config?.namespace as string,
     });
 
-    let execFd = "";
+    let execFd = 'let workerState = "PENDING";';
 
     for (const addon of this._config?.addons ?? []) {
       const source = this._config.addonLoader

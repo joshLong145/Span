@@ -7,31 +7,53 @@ import { WasmInstanceWrapper } from "../src/mod.ts";
 import { WasmWorkerDefinition } from "../src/WasmInstanceWrapper.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
 
-class TestExample extends WasmWorkerDefinition {
+class GoTestExample extends WasmWorkerDefinition {
   public constructor(modulePath: string) {
     super(modulePath);
   }
 
-  public testBuffer(buffer: SharedArrayBuffer, module: Record<string, any>) {
+  public testBuffer(
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer {
     let arr = new Int8Array(buffer);
     arr[0] += 1;
     //@ts-ignore wasm
     self.primeGenerator();
+
+    return buffer;
   }
 
-  public testParams(buffer: SharedArrayBuffer, module: Record<string, any>) {
+  public testParams(
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer {
     let arr = new Int32Array(buffer);
-    arr[0] = module.foo;
+    arr[0] = args.foo;
+    return buffer;
+  }
+}
+class RustTestExample extends WasmWorkerDefinition {
+  public constructor(modulePath: string) {
+    super(modulePath);
+  }
+
+  public test2(buffer: SharedArrayBuffer, args: Record<string, any>) {
+    let arr = new Int8Array(buffer);
+    arr[0] += 1;
+    //@ts-ignore
+    self.greet();
+    return arr.buffer;
   }
 }
 
 Deno.test("WASM Worker Should have wasm methods loaded from module", async () => {
-  const example: TestExample = new TestExample(
+  const example: GoTestExample = new GoTestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
-    TestExample
+  const wrapper: WasmInstanceWrapper<GoTestExample> = new WasmInstanceWrapper<
+    GoTestExample
   >(
     example,
     {
@@ -68,12 +90,12 @@ Deno.test("WASM Worker Should have wasm methods loaded from module", async () =>
 });
 
 Deno.test("WASM Worker method should correct pass arguments", async () => {
-  const example: TestExample = new TestExample(
+  const example: GoTestExample = new GoTestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
-    TestExample
+  const wrapper: WasmInstanceWrapper<GoTestExample> = new WasmInstanceWrapper<
+    GoTestExample
   >(
     example,
     {
@@ -100,5 +122,37 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
       example.terminateWorker();
     },
   );
+  example.terminateWorker();
+});
+
+Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module", async () => {
+  const example: RustTestExample = new RustTestExample(
+    "./examples/wasm/rust/wasm_test_bg.wasm",
+  );
+
+  const wrapper: WasmInstanceWrapper<RustTestExample> = new WasmInstanceWrapper<
+    RustTestExample
+  >(
+    example,
+    {
+      addons: [
+        "./lib/wasm_test.js",
+      ],
+      addonLoader: (path: string) => {
+        return Deno.readTextFileSync(path);
+      },
+      moduleLoader: (path: string) => {
+        const fd = Deno.openSync(path);
+        let source = Deno.readAllSync(fd);
+        fd.close();
+        return source;
+      },
+    },
+  );
+
+  await wrapper.start();
+  await example.execute("test2").then((buffer: SharedArrayBuffer) => {
+    console.log(new Uint8Array(buffer)[0]);
+  });
   example.terminateWorker();
 });

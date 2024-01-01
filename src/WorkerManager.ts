@@ -17,8 +17,7 @@ export class WorkerManager {
   }
 
   public CreateOnMessageHandler(): string {
-    return `let workerState = "PENDING";
-            const execData = [];
+    return `const execData = [];
             self.setInterval(() => {
               if (execData.length > 0 && workerState === "READY") {
                   const task = execData.shift();
