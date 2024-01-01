@@ -1,4 +1,4 @@
-# A Web Worker Bridging Module
+# Span: A Web Worker Bridging Module
 
 <p align="center">
   <img width="200px" height="200px" src="https://github.com/joshLong145/DenoWebWorkerBridge/blob/master/images/worker-friend.png?raw=true" />
@@ -15,8 +15,12 @@ Each function within a class definition extending `WorkerDefinition` is given
 its own shared buffer instance which is accessible from the generated `bridge`
 the bridge exports all wrapper functions for the given definition.
 
+
+## Running Web Assembly modules
 It's also possible to declare a `Web Assembly` file which can be interfaced with
-with in the worker context. Currently only supports `Golang` compiled WASM.
+with in the worker context.
+
+Currently only supports `Golang` compiled WASM.
 Support will be added for WASM compiled and instated through module exports
 shall be added.
 
@@ -128,13 +132,13 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 );
 
 wrapper.create();
-import { foo } from "<path/to.bridge.js>";
+import { foo } from "<path/to/bridge.js>";
 await foo().then(() => {
   console.log("bar");
 });
 ```
 
-Usage in process (uses example from above)
+ ## Usage in process (uses example from above)
 
 ```javascript
 const example: WorkerDefinition = new Example();
@@ -144,24 +148,11 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, 
 });
 
 wrapper.start();
-```
-
-Invoking
-
-```javascript
-await example.execute("test1").then(() => {
-  console.log("hello");
+await example.execute('fib' {count: 10}).then((buffer: SharedArrayBuffer) => {
+  console.log("final fib number", new Uint8Array(buffer)[10]);
 });
 
-example.execute("test2").then(() => {
-  console.log("hello1");
-});
-example.execute("test2").then(() => {
-  console.log("hello2");
-});
-example.execute("test2").then(() => {
-  console.log("hello3");
-});
+example.terminateWorker();
 ```
 
 # Example JS With WASM
