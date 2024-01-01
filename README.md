@@ -162,8 +162,7 @@ Below we provide the go WASM runtime as an `addon` and give a callback for
 loading the module at the given file path.
 
 ```javascript
-import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/WasmInstanceWrapper.ts";
-import { sleep } from "https://deno.land/x/sleep/mod.ts";
+import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/mod.ts";
 class Example extends WasmWorkerDefinition {
 
     public constructor(modulePath: string) {
