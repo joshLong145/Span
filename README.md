@@ -20,14 +20,16 @@ the bridge exports all wrapper functions for the given definition.
 It's also possible to declare a `Web Assembly` file which can be interfaced with
 with in the worker context.
 
-Currently supports 
-  - `Golang`
-  - `Rust`
+Currently supports
 
-compiled WASM. Support will be added for WASM
-compiled and instated through module exports shall be added.
+- `Golang`
+- `Rust`
 
-**note** when compiling rust through `wasm bidgen` only `--target web` is known to be supported.
+compiled WASM. Support will be added for WASM compiled and instated through
+module exports shall be added.
+
+**note** when compiling rust through `wasm bidgen` only `--target web` is known
+to be supported.
 
 _Under development, still largely a work in progress_ Should not be used in
 production.

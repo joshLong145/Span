@@ -22,7 +22,7 @@ class TestExample extends WasmWorkerDefinition {
   }
 }
 
-Deno.bench("Wasm Worker Start", (b) => {
+Deno.bench("Wasm Worker Start Go Module loading", async (b) => {
   const example: WasmWorkerDefinition = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
@@ -48,7 +48,38 @@ Deno.bench("Wasm Worker Start", (b) => {
       },
     },
   );
-  wrapper.start().then(() => {
+  await wrapper.start().then(() => {
     example.terminateWorker();
   });
+});
+
+Deno.bench("Wasm Worker Start Rust Module loading", async (b) => {
+    const example: WasmWorkerDefinition = new TestExample(
+      "./examples/wasm/rust/wasm_test_bg.wasm",
+    );
+  
+    const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+      Example
+    >(
+      example,
+      {
+        outputPath: "output",
+        namespace: "asd",
+        addons: [
+          "./lib/wasm_test.js",
+        ],
+        addonLoader: (path: string) => {
+          return Deno.readTextFileSync(path);
+        },
+        moduleLoader: (path: string) => {
+          const fd = Deno.openSync(path);
+          let mod = Deno.readAllSync(fd);
+          fd.close();
+          return mod;
+        },
+      },
+    );
+    await wrapper.start().then(() => {
+      example.terminateWorker();
+    });
 });
