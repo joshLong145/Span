@@ -32,7 +32,7 @@ export class WorkerManager {
               }
           }, 1)
 
-          onmessage = (e) => {
+          self.onmessage = (e) => {
             execData.push(e.data);
           };            
 `;

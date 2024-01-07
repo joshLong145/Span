@@ -86,8 +86,15 @@ export class WorkerBridge<T> {
     return moduleWait;
   }
 
-  private _workerBootstrap(): string {
+  private _workerBootstrap(worker: string): string {
+    let workerBuff = new TextEncoder().encode(worker);
+    let workerArr = [];
+    for (let i = 0; i < workerBuff.length; i++) {
+      workerArr[i] = workerBuff[i];
+    }
+
     return `
+let workerStr = [${workerArr.toString()}]
 function uuidv4() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
     (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -96,21 +103,19 @@ function uuidv4() {
 const _executionMap = {}
 let worker;
 let workerState;
-const workerBuff = fetch("worker.js").then( async (resp) => {
-    const blob = await resp.blob();
-    const objUrl = URL.createObjectURL(blob);            
-    worker = new Worker(objUrl, {type: "module"}
+const blob = new Blob([workerStr],{ type: "application/typescript" });
+const objUrl = URL.createObjectURL(blob);            
+worker = new Worker(objUrl, {type: "module"});
 
-    worker.onmessage = function(e) {
-        if(!_executionMap[e.data.id]) {
-            return
-        }
-        const context = _executionMap[e.data.id]
-        context.promise && context.resolve(e.data.res)
-        delete _executionMap[e.data.id]
+worker.onmessage = function(e) {
+    if(!_executionMap[e.data.id]) {
+        return
     }
-});
-        `;
+    const context = _executionMap[e.data.id]
+    context.promise && context.resolve(e.data.res)
+    delete _executionMap[e.data.id]
+}
+`;
   }
 
   public workerWrappers(self: any) {
@@ -149,36 +154,41 @@ const workerBuff = fetch("worker.js").then( async (resp) => {
     let root = `const ${this._namespace} = {`;
 
     for (const worker of this._workers) {
-      root +=
-        `"${worker.WorkerName}": async function ${worker.WorkerName}(args) {
-                let promiseResolve, promiseReject;
-                const id = uuidv4()
-                const prms = new Promise((resolve, reject) => {
-                    promiseResolve = resolve
-                    promiseReject = reject
-                });
-                _executionMap[id] = {
-                    promise: prms,
-                    resolve: promiseResolve,
-                    reject: promiseReject,
-                }
-                worker.postMessage({
-                    name: "${worker.WorkerName}",
-                    id: id,
-                    buffer: _bufferMap["${worker.WorkerName}"],
-                    args
-                })
-                return prms;
-            },\n`;
+      root += `
+"${worker.WorkerName}": async function ${worker.WorkerName}(args) {
+    let promiseResolve, promiseReject;
+    const id = uuidv4()
+    const prms = new Promise((resolve, reject) => {
+        promiseResolve = resolve
+        promiseReject = reject
+    });
+    _executionMap[id] = {
+        promise: prms,
+        resolve: promiseResolve,
+        reject: promiseReject,
+    }
+    worker.postMessage({
+        name: "${worker.WorkerName}",
+        id: id,
+        buffer: _bufferMap["${worker.WorkerName}"],
+        args
+    })
+    return prms;
+  },\n
+`;
     }
 
     root += "}";
+    root += `
+for (const key of Object.keys(${this._namespace})) {
+  self[key] = ${this._namespace}[key];
+}`;
     return root;
   }
 
-  public createBridge(): string {
+  public createBridge(worker: string): string {
     const bufferAlloc = this._bufferMap();
-    const bootstrap = this._workerBootstrap();
+    const bootstrap = this._workerBootstrap(worker);
     const wrappers = this._workerWrappers();
     return `${bufferAlloc}\n${bootstrap}\n${wrappers}`;
   }

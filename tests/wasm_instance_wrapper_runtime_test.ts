@@ -39,6 +39,7 @@ class RustTestExample extends WasmWorkerDefinition {
   }
 
   public test2(buffer: SharedArrayBuffer, args: Record<string, any>) {
+    console.log(args.dom);
     let arr = new Int8Array(buffer);
     arr[0] += 1;
     //@ts-ignore
@@ -154,8 +155,10 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
   );
 
   await wrapper.start();
-  await example.execute("test2").then((buffer: SharedArrayBuffer) => {
-    console.log(new Uint8Array(buffer)[0]);
-  });
+  await example.execute("test2").then(
+    (buffer: SharedArrayBuffer) => {
+      console.log(new Uint8Array(buffer)[0]);
+    },
+  );
   example.terminateWorker();
 });
