@@ -1,4 +1,6 @@
 # Span: A Web Worker Bridging Module
+[![deno module](https://shield.deno.dev/x/span)](https://deno.land/x/span)
+[![Unit Test CI](https://github.com/joshLong145/Span/actions/workflows/test.yml/badge.svg)](https://github.com/joshLong145/Span/actions/workflows/test.yml)
 
 <p align="center">
   <img width="200px" height="200px" src="https://github.com/joshLong145/DenoWebWorkerBridge/blob/master/images/worker-friend.png?raw=true" />
