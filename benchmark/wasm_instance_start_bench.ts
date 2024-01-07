@@ -54,32 +54,32 @@ Deno.bench("Wasm Worker Start Go Module loading", async (b) => {
 });
 
 Deno.bench("Wasm Worker Start Rust Module loading", async (b) => {
-    const example: WasmWorkerDefinition = new TestExample(
-      "./examples/wasm/rust/wasm_test_bg.wasm",
-    );
-  
-    const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
-      Example
-    >(
-      example,
-      {
-        outputPath: "output",
-        namespace: "asd",
-        addons: [
-          "./lib/wasm_test.js",
-        ],
-        addonLoader: (path: string) => {
-          return Deno.readTextFileSync(path);
-        },
-        moduleLoader: (path: string) => {
-          const fd = Deno.openSync(path);
-          let mod = Deno.readAllSync(fd);
-          fd.close();
-          return mod;
-        },
+  const example: WasmWorkerDefinition = new TestExample(
+    "./examples/wasm/rust/wasm_test_bg.wasm",
+  );
+
+  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+    Example
+  >(
+    example,
+    {
+      outputPath: "output",
+      namespace: "asd",
+      addons: [
+        "./lib/wasm_test.js",
+      ],
+      addonLoader: (path: string) => {
+        return Deno.readTextFileSync(path);
       },
-    );
-    await wrapper.start().then(() => {
-      example.terminateWorker();
-    });
+      moduleLoader: (path: string) => {
+        const fd = Deno.openSync(path);
+        let mod = Deno.readAllSync(fd);
+        fd.close();
+        return mod;
+      },
+    },
+  );
+  await wrapper.start().then(() => {
+    example.terminateWorker();
+  });
 });
