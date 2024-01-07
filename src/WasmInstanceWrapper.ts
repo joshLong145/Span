@@ -92,8 +92,8 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
 
     this.workerString += `
             ]);
-
-            if (typeof wasm_bindgen === "undefined") {
+            console.log("loading");
+            if (typeof wasm_bindgen === "undefined" && typeof initSync === "undefined") {
               WebAssembly.instantiate(uint8, self['mod'] ? self['mod'].importObject : {}).then((module) => {
                 // tell the host that we can start
                 self.mod && self.mod.run(module.instance);
@@ -107,19 +107,30 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
                 })
               });
             } else {
-              console.log(wasm_bindgen);
-              wasm_bindgen && ((module) =>{
-                self.module = module;
-                self.module.initSync(uint8);
-                for (const key of Object.keys(self.module)) {
-                  self[key] = self.module[key];
+              if(typeof wasm_bindgen === "undefined") {
+                initSync && initSync(uint8);
+                for (const key of Object.keys(wasm)){
+                  self[key] = wasm[key];
                 }
-  
+
                 workerState = "READY";
                 postMessage({
                   ready: true
                 });
-              })(wasm_bindgen);
+              } else if(typeof wasm_bindgen !== "undefined") {
+                wasm_bindgen && ((module) =>{
+                  self.module = module;
+                  self.module.initSync(uint8);
+                  for (const key of Object.keys(self.module)) {
+                    self[key] = self.module[key];
+                  }
+    
+                  workerState = "READY";
+                  postMessage({
+                    ready: true
+                  });
+                })(wasm_bindgen);
+              }
             }
         `;
   }

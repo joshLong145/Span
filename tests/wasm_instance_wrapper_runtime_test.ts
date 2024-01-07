@@ -43,6 +43,9 @@ class RustTestExample extends WasmWorkerDefinition {
     arr[0] += 1;
     //@ts-ignore
     self.greet();
+    //@ts-ignore
+    let val = self.getValue();
+    console.log(val);
     return arr.buffer;
   }
 }
