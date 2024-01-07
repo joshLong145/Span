@@ -4,7 +4,7 @@
     "fmt": "deno fmt",
     "bench": "deno bench benchmark/ --unstable --no-check --allow-all",
     "test": "deno test -A --parallel --trace-ops --no-check",
-    "ok": "deno fmt && deno task test --coverage=.coverage && deno coverage --exclude=test --exclude=benchmark --lcov --output=lcov.info .coverage && deno run --allow-read https://deno.land/x/code_coverage@0.2.1/cli.ts",
+    "ok": "deno fmt && deno task test --coverage=.coverage && deno coverage --exclude=test --exclude=benchmark --exclude=public --lcov --output=lcov.info .coverage && deno run --allow-read https://deno.land/x/code_coverage@0.2.1/cli.ts",
     "gen-npm": "deno run -A --no-check scripts/gen-npm.ts"
   },
   "exclude": [
