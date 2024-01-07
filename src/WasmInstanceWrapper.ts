@@ -92,7 +92,6 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
 
     this.workerString += `
             ]);
-            console.log("loading");
             if (typeof wasm_bindgen === "undefined" && typeof initSync === "undefined") {
               WebAssembly.instantiate(uint8, self['mod'] ? self['mod'].importObject : {}).then((module) => {
                 // tell the host that we can start
