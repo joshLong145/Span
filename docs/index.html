@@ -10,7 +10,7 @@
         const _bufferMap = {}
         
             // this buffer size should be a config option, 
-            _bufferMap["test2"] = new Uint8Array();
+            _bufferMap["test2"] = SharedArrayBuffer ? new SharedArrayBuffer(1024) : new Uint8Array();
 
             
 

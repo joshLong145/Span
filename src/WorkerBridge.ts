@@ -33,7 +33,7 @@ export class WorkerBridge<T> {
     for (const worker of this._workers) {
       root += `
             // this buffer size should be a config option, 
-            _bufferMap["${worker.WorkerName}"] = new SharedArrayBuffer(1024);\n
+            _bufferMap["${worker.WorkerName}"] = SharedArrayBuffer ? new SharedArrayBuffer(1024) : new Uint8Array();\n
             `;
     }
 
