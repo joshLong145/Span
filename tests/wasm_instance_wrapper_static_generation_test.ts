@@ -6,7 +6,7 @@ import {
 import { WasmInstanceWrapper } from "../src/mod.ts";
 import { WasmWorkerDefinition } from "../src/WasmInstanceWrapper.ts";
 import { existsSync } from "https://deno.land/std@0.211.0/fs/exists.ts";
-import { sleep } from "https://deno.land/x/sleep@v1.2.1/sleep.ts";
+import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
 
 class RustTestExample extends WasmWorkerDefinition {
   public constructor(modulePath: string) {
@@ -61,7 +61,8 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
     writeFileSync: Deno.writeFileSync,
   });
 
-  await import("./../public/wasm/bridge.js").then(async (module) => {
+  const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
+  await import(__dirname + "/../public/wasm/bridge.js").then(async (module) => {
     //@ts-ignore
     assertExists(self["test2"]);
     //@ts-ignore
