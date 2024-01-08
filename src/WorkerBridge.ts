@@ -103,19 +103,26 @@ function uuidv4() {
 const _executionMap = {}
 let worker;
 let workerState;
-const blob = new Blob([workerStr],{ type: "application/typescript" });
+let prmsRes;
+let moduleWait = new Promise((res, rej) => {
+  prmsRes = res;
+});
+console.log("loading worker");
+const blob = new Blob([new TextDecoder().decode(new Uint8Array(workerStr))],{ type: "application/typescript" });
 const objUrl = URL.createObjectURL(blob);            
 worker = new Worker(objUrl, {type: "module"});
 
 worker.onmessage = function(e) {
-    if(!_executionMap[e.data.id]) {
-        return
-    }
-    const context = _executionMap[e.data.id]
-    context.promise && context.resolve(e.data.res)
-    delete _executionMap[e.data.id]
-}
-`;
+  if (e.data.ready) {
+    prmsRes();
+  }
+  if(!_executionMap[e.data.id]) {
+      return
+  }
+  const context = _executionMap[e.data.id]
+  context.promise && context.resolve(e.data.res)
+  delete _executionMap[e.data.id]
+}`;
   }
 
   public workerWrappers(self: any) {
@@ -182,7 +189,9 @@ worker.onmessage = function(e) {
     root += `
 for (const key of Object.keys(${this._namespace})) {
   self[key] = ${this._namespace}[key];
-}`;
+}
+self['worker'] = worker;
+`;
     return root;
   }
 

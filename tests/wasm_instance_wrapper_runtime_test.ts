@@ -5,7 +5,6 @@ import {
 
 import { WasmInstanceWrapper } from "../src/mod.ts";
 import { WasmWorkerDefinition } from "../src/WasmInstanceWrapper.ts";
-import { sleep } from "https://deno.land/x/sleep/mod.ts";
 
 class GoTestExample extends WasmWorkerDefinition {
   public constructor(modulePath: string) {

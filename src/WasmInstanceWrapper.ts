@@ -91,7 +91,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
     }
 
     this.workerString += `
-            ]);
+            ]); 
             if (typeof wasm_bindgen === "undefined" && typeof initSync === "undefined") {
               WebAssembly.instantiate(uint8, self['mod'] ? self['mod'].importObject : {}).then((module) => {
                 // tell the host that we can start
@@ -110,8 +110,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
                 initSync && initSync(uint8);
                 for (const key of Object.keys(wasm)){
                   self[key] = wasm[key];
-                }
-
+                } 
                 workerState = "READY";
                 postMessage({
                   ready: true
@@ -157,20 +156,18 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
         "No output path provided in configuration, aborting generation",
       );
     }
-
-    this._generate();
-
     const enc = new TextEncoder();
-    provider.writeFileSync(
-      this._config.outputPath + "/worker.js",
-      enc.encode(`
+    this._generate();
+    let worker = `
 ${this.workerString}\n
 ${this?._wm?.CreateWorkerMap()}\n
-            `),
-    );
+${this?._wm?.CreateOnMessageHandler()}`;
+
     provider.writeFileSync(
       this._config.outputPath + "/bridge.js",
-      enc.encode(`${this?._wb?.createBridge()}`),
+      enc.encode(
+        `${this?._wb?.createBridge(worker)}`,
+      ),
     );
   }
 

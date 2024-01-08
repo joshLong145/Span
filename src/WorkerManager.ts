@@ -19,7 +19,7 @@ export class WorkerManager {
   public CreateOnMessageHandler(): string {
     return `const execData = [];
             self.setInterval(() => {
-              if (execData.length > 0 && workerState === "READY") {
+            if (execData.length > 0 && workerState === "READY") {
                   const task = execData.shift();
                   let res = _execMap[task.name](task.buffer, task.args);
                   postMessage({
@@ -28,13 +28,13 @@ export class WorkerManager {
                       id: task.id,
                       res,
                       state: workerState,
-                  })
-              }
-          }, 1)
+                  });
+            }
+          }, 10);
 
           self.onmessage = (e) => {
             execData.push(e.data);
-          };            
+          };
 `;
   }
 }

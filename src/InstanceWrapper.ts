@@ -102,12 +102,15 @@ export class InstanceWrapper<T extends WorkerDefinition> {
   public create(provider: DiskIOProvider): void {
     const byteEncoder = new TextEncoder();
 
-    const worker =
-      `${this?._wm?.CreateWorkerMap()}\n${this._wm?.CreateOnMessageHandler()}`;
+    const worker = `${this._workerString}\n
+      ${this?._wm?.CreateWorkerMap()}\n${this._wm?.CreateOnMessageHandler()}` +
+      'self.postMessage({ready: true}); workerState = "READY"';
 
     provider.writeFileSync(
       `${this._config.outputPath}/bridge.js`,
-      byteEncoder.encode(`${this?._wb?.createBridge(worker)}`),
+      byteEncoder.encode(
+        `${this?._wb?.createBridge(worker)}`,
+      ),
     );
   }
 }

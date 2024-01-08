@@ -16,7 +16,7 @@ class TestExample extends WorkerDefinition {
   ): ArrayBuffer {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
-
+    console.log("this is foo", module);
     return buffer;
   }
 
@@ -43,10 +43,12 @@ Deno.test("Generated bridge should load functions into global", async () => {
     writeFileSync: Deno.writeFileSync,
   });
 
-  import("../public/bridge.js").then(async (_) => {
-    //@ts-ignore
-    assertExists(self["bar"]);
-    //@ts-ignore
-    assertExists(self["bar"]);
-  });
+  await import("../public/bridge.js");
+  //@ts-ignore
+  assertExists(self["bar"]);
+  //@ts-ignore
+  assertExists(self["bar"]);
+  await self["foo"]({ hey: "wow" });
+
+  self["worker"].terminate();
 });
