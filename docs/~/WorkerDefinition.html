@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WorkerDefinition - My library  documentation</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="doc-current-file" content="">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../../page.css">
+</head>
+<body>
+
+
+<nav id="sidepanel">
+    
+      <h2><a href="index.html"><span>My library</span></a></h2>
+    
+    
+        <h3>Class</h3>
+        <ul>
+          
+            <li>
+              <a href="../.././/~/InstanceWrapper.html">
+                <div class="symbol_kind kind_Class_text kind_Class_bg" title="Class">
+  c
+</div>
+
+                <span>InstanceWrapper</span>
+              </a>
+            </li>
+        
+            <li>
+              <a href="../.././/~/WorkerDefinition.html">
+                <div class="symbol_kind kind_Class_text kind_Class_bg" title="Class">
+  c
+</div>
+
+                <span>WorkerDefinition</span>
+              </a>
+            </li>
+        
+        </ul>
+    
+</nav>
+
+
+<div id="content" class="with_sidepanel">
+  <a href="./index.html">&#8592; Back to index</a>
+  <input type="text" id="searchbar" style="display: none;" />
+
+  <main class="symbol_group" id="symbol_WorkerDefinition">
+  
+    <article class="symbol">
+      <div class="symbol_header">
+        <div class="doc_block_title">
+          <div>
+            <span class="kind_Class_text">class</span>&nbsp;<span style="font-weight: 700;">WorkerDefinition</span>
+          </div>
+          <div class="doc_block_subtitle">
+  
+    
+    
+    
+  
+
+  
+</div>
+        </div>
+      </div>
+      <div>
+        <div class="doc_block_items"><div class="markdown"><p>Base class for worker imlementation</p>
+</div><div>
+  Constructors
+  <div class="section">
+    <div class="doc_item" id="constructor_0">
+  
+<a
+    href="#constructor_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">WorkerDefinition</span><span style="font-weight: 500;">()</span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+
+  </div>
+</div><div>
+  Properties
+  <div class="section">
+    <div class="doc_item" id="property_execMap">
+  
+<a
+    href="#property_execMap"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">execMap</span><span style="font-weight: 500;">: <span>Record</span>&lt;<span>string</span><span>, </span>(<span><span>args<span>: <span>Record</span>&lt;<span>string</span><span>, </span><span>any</span>&gt;</span></span></span>) =&gt; <span>Promise</span>&lt;<span>SharedArrayBuffer</span>&gt;&gt;</span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+<div class="doc_item" id="property_worker">
+  
+<a
+    href="#property_worker"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">worker</span><span style="font-weight: 500;">: <span><span>Worker</span><span> | </span><span>undefined</span></span></span>
+    </code>
+    </span>
+  </div>
+  <div class="markdown"><p>worker instance, can be stopped by calling terminateWorker</p>
+</div>
+</div>
+
+  </div>
+</div><div>
+  Methods
+  <div class="section">
+    <div class="doc_item" id="method_execute_0">
+  
+<a
+    href="#method_execute_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">execute</span><span style="font-weight: 500;">(<span><span>name<span>: <span>keyof</span> <span>this</span></span></span><span>, </span><span>args?<span>: <span>Record</span>&lt;<span>string</span><span>, </span><span>any</span>&gt;</span></span></span>): <span>Promise</span>&lt;<span>SharedArrayBuffer</span>&gt;</span>
+    </code>
+    </span>
+  </div>
+  <div class="markdown"><p>Run implemented methods from within the worker instance</p>
+<p>example: await workerDefintion.execute('foo', {bar: true});</p>
+</div>
+</div>
+<div class="doc_item" id="method_terminateWorker_0">
+  
+<a
+    href="#method_terminateWorker_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">terminateWorker</span><span style="font-weight: 500;">(): <span>void</span></span>
+    </code>
+    </span>
+  </div>
+  <div class="markdown"><p>calls terminate on the worker instace</p>
+</div>
+</div>
+
+  </div>
+</div></div>
+      </div>
+    </article>
+  
+</main>
+
+
+  <div id="searchResults"></div>
+</div>
+
+</body>
+<script src="../../search_index.js" defer></script>
+<script src="../../fuse.js" defer></script>
+<script src="../../search.js" defer></script>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>InstanceWrapper - My library  documentation</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="doc-current-file" content="">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../../page.css">
+</head>
+<body>
+
+
+<nav id="sidepanel">
+    
+      <h2><a href="index.html"><span>My library</span></a></h2>
+    
+    
+        <h3>Class</h3>
+        <ul>
+          
+            <li>
+              <a href="../.././/~/InstanceWrapper.html">
+                <div class="symbol_kind kind_Class_text kind_Class_bg" title="Class">
+  c
+</div>
+
+                <span>InstanceWrapper</span>
+              </a>
+            </li>
+        
+            <li>
+              <a href="../.././/~/WorkerDefinition.html">
+                <div class="symbol_kind kind_Class_text kind_Class_bg" title="Class">
+  c
+</div>
+
+                <span>WorkerDefinition</span>
+              </a>
+            </li>
+        
+        </ul>
+    
+</nav>
+
+
+<div id="content" class="with_sidepanel">
+  <a href="./index.html">&#8592; Back to index</a>
+  <input type="text" id="searchbar" style="display: none;" />
+
+  <main class="symbol_group" id="symbol_InstanceWrapper">
+  
+    <article class="symbol">
+      <div class="symbol_header">
+        <div class="doc_block_title">
+          <div>
+            <span class="kind_Class_text">class</span>&nbsp;<span style="font-weight: 700;">InstanceWrapper</span>
+          </div>
+          <div class="doc_block_subtitle">
+  
+    
+    
+    
+  
+
+  
+</div>
+        </div>
+      </div>
+      <div>
+        <div class="doc_block_items"><div class="markdown"><p>Creates a new worker and initalizes it with methods from
+the class instance provided. Currently will create the worker as a module
+the current implementation will bind onmessage handlers in the worker
+the imlpementation is used internally and should not be modified.
+<strong>note</strong> when using with file generation, the worker instance will be loaded into the global object as <code>worker</code></p>
+</div><div>
+  Constructors
+  <div class="section">
+    <div class="doc_item" id="constructor_0">
+  
+<a
+    href="#constructor_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">InstanceWrapper</span><span style="font-weight: 500;">()</span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+
+  </div>
+</div><div>
+  Type Parameters
+  <div class="section">
+    <div class="doc_item" id="type_param_T">
+  
+<a
+    href="#type_param_T"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">T</span><span style="font-weight: 500;"><span><span> extends </span><a href="../.././/~/WorkerDefinition.html" class="link">WorkerDefinition</a></span></span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+
+  </div>
+</div><div>
+  Properties
+  <div class="section">
+    <div class="doc_item" id="property__config">
+  
+<a
+    href="#property__config"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">_config</span><span style="font-weight: 500;">: <a href="../.././/~/InstanceConfiguration.html" class="link">InstanceConfiguration</a></span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+<div class="doc_item" id="property__instance">
+  
+<a
+    href="#property__instance"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">_instance</span><span style="font-weight: 500;">: <a href="../.././/~/WorkerInstance.html" class="link">WorkerInstance</a>&lt;<a href="#type_param_T" class="link">T</a>&gt;</span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+<div class="doc_item" id="property__wb">
+  
+<a
+    href="#property__wb"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">_wb</span><span style="font-weight: 500;">: <span><a href="../.././/~/WorkerBridge.html" class="link">WorkerBridge</a>&lt;<a href="#type_param_T" class="link">T</a>&gt;<span> | </span><span>undefined</span></span></span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+<div class="doc_item" id="property__wm">
+  
+<a
+    href="#property__wm"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">_wm</span><span style="font-weight: 500;">: <span><a href="../.././/~/WorkerManager.html" class="link">WorkerManager</a><span> | </span><span>undefined</span></span></span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+<div class="doc_item" id="property__workerString">
+  
+<a
+    href="#property__workerString"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">_workerString</span><span style="font-weight: 500;">: <span>string</span></span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+
+  </div>
+</div><div>
+  Methods
+  <div class="section">
+    <div class="doc_item" id="method__generate_0">
+  
+<a
+    href="#method__generate_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">_generate</span><span style="font-weight: 500;">(): <span>void</span></span>
+    </code>
+    </span>
+  </div>
+  
+</div>
+<div class="doc_item" id="method_create_0">
+  
+<a
+    href="#method_create_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">create</span><span style="font-weight: 500;">(<span><span>provider<span>: <a href="../.././/~/DiskIOProvider.html" class="link">DiskIOProvider</a></span></span></span>): <span>void</span></span>
+    </code>
+    </span>
+  </div>
+  <div class="markdown"><p>Creates the worker and bridging as generated output as <code>bridge</code> to a directory
+the bootstrapping logic will load methods from the provided instance to the global object</p>
+</div>
+</div>
+<div class="doc_item" id="method_restart_0">
+  
+<a
+    href="#method_restart_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">restart</span><span style="font-weight: 500;">(): <span>void</span></span>
+    </code>
+    </span>
+  </div>
+  <div class="markdown"><p>Regenerates the worker</p>
+</div>
+</div>
+<div class="doc_item" id="method_start_0">
+  
+<a
+    href="#method_start_0"
+    class="anchor"
+    aria-label="Anchor"
+    tabIndex=-1
+>
+    <div style="width: 14px; height: 14px; display: inline-block;">&#128279;</div>
+</a>
+
+  <div class="doc_entry">
+    <span class="doc_entry_children">
+    <code>
+      <span style="font-weight: 700;">start</span><span style="font-weight: 500;">(): <span>Promise</span>&lt;<span>void</span>&gt;</span>
+    </code>
+    </span>
+  </div>
+  <div class="markdown"><p>Create the web worker, adds an instance of a Worker object to the given class instance.
+Current only supports the <code>onmessage</code> handler. but object may be accesed as the <code>worker</code> property</p>
+</div>
+</div>
+
+  </div>
+</div></div>
+      </div>
+    </article>
+  
+</main>
+
+
+  <div id="searchResults"></div>
+</div>
+
+</body>
+<script src="../../search_index.js" defer></script>
+<script src="../../fuse.js" defer></script>
+<script src="../../search.js" defer></script>
+</html>
