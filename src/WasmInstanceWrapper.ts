@@ -7,28 +7,64 @@ import { WorkerBridge } from "./WorkerBridge.ts";
 import { WorkerManager } from "./WorkerManager.ts";
 import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
 
+/**
+ * Base class for worker imlementation.
+ * All methods within a class which extends this
+ * Allows for WASM modules to be loaded and initalized
+ * through a file path as a constructor argument. If any
+ * supporting javascript is needed, it may be loaded through
+ * configuring `addons` when configuring the Wrapper.
+ */
 export class WasmWorkerDefinition {
   public execMap: Record<
     string,
     (options?: Record<string, any>) => Promise<SharedArrayBuffer>
   > = {};
+
+  /**
+   * Worker instance, can be stopped by calling terminateWorker
+   */
   public worker: Worker | undefined = undefined;
+
+  /**
+   * Path to the WASM module being loaded into the worker.
+   */
   public ModulePath: string;
+
   private workerString = "";
 
   constructor(modulePath: string) {
     this.ModulePath = modulePath;
   }
 
+  /**
+   * Run implemented methods from within the worker instance
+   * @example
+   * await workerDefintion.execute('foo', {bar: true});
+   * @param {keyof} name of method impleemnted on this class
+   * @param {Record<string,any>} args to pass to the method
+   * @returns {SharedArrayBuffer}
+   */
   public execute(name: keyof this, options?: any): Promise<SharedArrayBuffer> {
     return this.execMap[name as unknown as string](options);
   }
 
+  /**
+   * Calls terminate on the worker instace
+   */
   public terminateWorker() {
     this.worker?.terminate();
   }
 }
 
+/**
+ * Creates a new worker and initalizes it with methods from
+ * the class instance provided. Currently will create the worker as a module
+ * the current implementation will bind onmessage handlers in the worker
+ * the imlpementation is used internally and should not be modified.
+ *
+ * **note** when using with file generation, the worker instance will be loaded into the global object as `worker`
+ */
 export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
   private _instance: WasmWorkerInstance<T>;
   private _config: InstanceConfiguration;
@@ -134,7 +170,8 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
   }
 
   /**
-   * Creates
+   * Create the web worker, adds an instance of a Worker object to the given class instance.
+   * Current only supports the `onmessage` handler. but object may be accesed as the `worker` property
    */
   public async start() {
     this?._wb?.bufferMap(this._instance);
@@ -150,6 +187,10 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
     );
   }
 
+  /**
+   * Creates the worker and bridging as generated output as `bridge` to a directory
+   * the bootstrapping logic will load methods from the provided instance to the global object
+   */
   public create(provider: DiskIOProvider): void {
     if (!this._config.outputPath) {
       throw new Error(
@@ -171,6 +212,9 @@ ${this?._wm?.CreateOnMessageHandler()}`;
     );
   }
 
+  /**
+   * Regenerates the worker
+   */
   public restart() {
     this?._wb?.workerBootstrap(
       this._instance as T,
