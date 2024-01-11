@@ -1,76 +1,119 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Index - My library documentation</title>
+  <title>Index - Span documentation</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="doc-current-file" content="">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="page.css">
+
+  <script src="search_index.js" defer></script>
+  <script src="fuse.js" defer></script>
+  <script src="search.js" defer></script>
 </head>
 <body>
+<nav id="sidepanel"><input type="checkbox" id="sidepanelToggle" class="hidden peer" autocomplete="off">
 
-
-<nav id="sidepanel">
-    
-      <h2><a href=""><span>My library</span></a></h2>
-    
-
-    <a href="./all_symbols.html">All symbols</a>
-
-    
-
-    
-      <h3>APIs</h3>
-      <ul>
-        
-        <li>
-          <h4>Class</h4>
-          <ul>
-            
-            <li>
-              <a href=".//~/InstanceWrapper.html">
-                <div class="symbol_kind kind_Class_text kind_Class_bg" title="Class">
-  c
+<div class="max-lg:flex max-lg:justify-between"><h2 class="text-lg font-semibold flex gap-2 items-center">
+      <a href="index.html" class="flex-grow"><span>Span</span></a>
+    </h2><label for="sidepanelToggle" class="lg:hidden"><svg
+  width="21"
+  height="14"
+  viewBox="0 0 21 14"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <line
+    x1="0.25"
+    y1="1.4"
+    x2="20.25"
+    y2="1.4"
+    stroke="currentColor"
+    stroke-width="1.2"
+  />
+  <line
+    x1="0.25"
+    y1="7.4"
+    x2="20.25"
+    y2="7.4"
+    stroke="currentColor"
+    stroke-width="1.2"
+  />
+  <line
+    x1="0.25"
+    y1="13.4"
+    x2="10.25"
+    y2="13.4"
+    stroke="currentColor"
+    stroke-width="1.2"
+  />
+</svg>
+</label>
 </div>
-
-                <span>InstanceWrapper</span>
-              </a>
-            </li>
-            
-            <li>
-              <a href=".//~/WorkerDefinition.html">
-                <div class="symbol_kind kind_Class_text kind_Class_bg" title="Class">
-  c
-</div>
-
-                <span>WorkerDefinition</span>
-              </a>
-            </li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    
+<div class="max-lg:hidden peer-checked:block">
+    <a class="mt-1" href="./all_symbols.html">All symbols</a><h3 class="title">APIs</h3>
+      <ul class="space-y-2"><li>
+            <h4 class="subtitle">Class</h4>
+            <ul><li>
+                  <a href="././~/InstanceWrapper.html" title="InstanceWrapper" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Class bg-Class/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Class">c</div></div>
+<span >InstanceWrapper</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WasmInstanceWrapper.html" title="WasmInstanceWrapper" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Class bg-Class/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Class">c</div></div>
+<span >WasmInstanceWrapper</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WasmWorkerDefinition.html" title="WasmWorkerDefinition" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Class bg-Class/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Class">c</div></div>
+<span >WasmWorkerDefinition</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WorkerDefinition.html" title="WorkerDefinition" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Class bg-Class/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Class">c</div></div>
+<span >WorkerDefinition</span>
+                  </a>
+                </li></ul>
+          </li><li>
+            <h4 class="subtitle">Interface</h4>
+            <ul><li>
+                  <a href="././~/BridgeConfiguration.html" title="BridgeConfiguration" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Interface bg-Interface/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Interface">I</div></div>
+<span >BridgeConfiguration</span>
+                  </a>
+                </li><li>
+                  <a href="././~/DiskIOProvider.html" title="DiskIOProvider" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Interface bg-Interface/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Interface">I</div></div>
+<span >DiskIOProvider</span>
+                  </a>
+                </li><li>
+                  <a href="././~/InstanceConfiguration.html" title="InstanceConfiguration" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Interface bg-Interface/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Interface">I</div></div>
+<span >InstanceConfiguration</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WorkerEvent.html" title="WorkerEvent" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-Interface bg-Interface/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Interface">I</div></div>
+<span >WorkerEvent</span>
+                  </a>
+                </li></ul>
+          </li><li>
+            <h4 class="subtitle">Type Alias</h4>
+            <ul><li>
+                  <a href="././~/WasmWorkerInstance.html" title="WasmWorkerInstance" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-TypeAlias bg-TypeAlias/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Type Alias">T</div></div>
+<span >WasmWorkerInstance</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WorkerFunctions.html" title="WorkerFunctions" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-TypeAlias bg-TypeAlias/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Type Alias">T</div></div>
+<span >WorkerFunctions</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WorkerInstance.html" title="WorkerInstance" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-TypeAlias bg-TypeAlias/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Type Alias">T</div></div>
+<span >WorkerInstance</span>
+                  </a>
+                </li><li>
+                  <a href="././~/WorkerMethod.html" title="WorkerMethod" ><div class="flex justify-end compound_types w-[2.125rem] shrink-0"><div class="text-TypeAlias bg-TypeAlias/15 rounded-full size-5 font-medium text-xs leading-5 text-center align-middle shrink-0 select-none font-mono" title="Type Alias">T</div></div>
+<span >WorkerMethod</span>
+                  </a>
+                </li></ul>
+          </li></ul></div>
 </nav>
-
-
-<div id="content" class="with_sidepanel">
-  <h2>Index</h2>
-
-  <input type="text" id="searchbar" style="display: none;" />
-
-  <main>
-
-    
-  </main>
-
-  <div id="searchResults"></div>
-<div>
-
+<div id="content" class="with_sidepanel"><div class="mb-6 whitespace-nowrap leading-none"><span class="italic">index</span></div>
+<input type="text" id="searchbar" style="display: none;" class="w-full p-2 box-border rounded-xl text-base mb-6 bg-stone-100" />
+<main></main><div id="searchResults"></div><div>
 </body>
-<script src="search_index.js" defer></script>
-<script src="fuse.js" defer></script>
-<script src="search.js" defer></script>
 </html>
