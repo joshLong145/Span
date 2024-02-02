@@ -81,14 +81,18 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
   }
 
   private _generate(): void {
-    const keys = Reflect.ownKeys(Object.getPrototypeOf(this._instance)) as [
-      keyof T,
-    ];
+    const protoKeys = Reflect.ownKeys(
+      Object.getPrototypeOf(this._instance),
+    ) as [keyof T];
+    const baseKeys = Object.keys(this._instance) as [keyof T];
+
     const wrps: WorkerWrapper[] = [];
-    for (const key of keys) {
-      key !== "constructor" &&
+    for (const key of protoKeys.concat(baseKeys)) {
+      key !== "constructor" && key !== "execMap" && key !== "worker" &&
+        key !== "ModulePath" && key !== "workerString" &&
         wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
     }
+
     this._wm = new WorkerManager(wrps);
     this._wb = new WorkerBridge({
       workers: wrps,

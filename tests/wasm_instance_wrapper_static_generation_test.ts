@@ -13,7 +13,7 @@ class RustTestExample extends WasmWorkerDefinition {
     super(modulePath);
   }
 
-  public test2(buffer: SharedArrayBuffer, args: Record<string, any>) {
+  test2 = (buffer: SharedArrayBuffer, args: Record<string, any>) => {
     console.log(args.dom);
     let arr = new Int8Array(buffer);
     arr[0] += 1;
@@ -23,7 +23,7 @@ class RustTestExample extends WasmWorkerDefinition {
     let val = self.getValue();
     console.log(val);
     return arr.buffer;
-  }
+  };
 }
 
 Deno.test("WASM Worker Should generate worker and load functions into global", async () => {

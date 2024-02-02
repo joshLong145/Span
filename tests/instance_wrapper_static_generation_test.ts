@@ -11,23 +11,23 @@ class TestExample extends WorkerDefinition {
     super();
   }
 
-  public foo(
+  foo = (
     buffer: SharedArrayBuffer,
     module: Record<string, any>,
-  ): ArrayBuffer {
+  ): ArrayBuffer => {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
     console.log("this is foo", module);
     return buffer;
-  }
+  };
 
-  public bar(
+  bar = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     const arr = new Uint8Array(buffer)[0] = args.value;
     return buffer;
-  }
+  };
 }
 
 Deno.test("Generated bridge should load functions into global", async () => {

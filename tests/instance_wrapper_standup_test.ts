@@ -9,14 +9,14 @@ class TestExample extends WorkerDefinition {
     super();
   }
 
-  public foo(
+  foo = (
     buffer: SharedArrayBuffer,
     module: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     let arr = new Uint8Array(buffer);
     arr[0] += 1;
     return buffer;
-  }
+  };
 }
 
 Deno.test("Worker Wrapper should be defined", () => {

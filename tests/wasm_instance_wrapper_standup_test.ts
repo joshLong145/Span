@@ -12,14 +12,14 @@ class TestExample extends WasmWorkerDefinition {
     super(modulePath);
   }
 
-  public test2(buffer: SharedArrayBuffer, module: Record<string, any>) {
+  test2 = (buffer: SharedArrayBuffer, module: Record<string, any>) => {
     let arr = new Int8Array(buffer);
     arr[0] += 1;
 
     //@ts-ignore method injection from wasm.
     self.primeGenerator();
     return arr.buffer;
-  }
+  };
 }
 
 Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", () => {

@@ -11,33 +11,33 @@ class GoTestExample extends WasmWorkerDefinition {
     super(modulePath);
   }
 
-  public testBuffer(
+  testBuffer = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     let arr = new Int8Array(buffer);
     arr[0] += 1;
     //@ts-ignore wasm
     self.primeGenerator();
 
     return buffer;
-  }
+  };
 
-  public testParams(
+  testParams = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     let arr = new Int32Array(buffer);
     arr[0] = args.foo;
     return buffer;
-  }
+  };
 }
 class RustTestExample extends WasmWorkerDefinition {
   public constructor(modulePath: string) {
     super(modulePath);
   }
 
-  public test2(buffer: SharedArrayBuffer, args: Record<string, any>) {
+  test2 = (buffer: SharedArrayBuffer, args: Record<string, any>) => {
     console.log(args.dom);
     let arr = new Int8Array(buffer);
     arr[0] += 1;
@@ -47,7 +47,7 @@ class RustTestExample extends WasmWorkerDefinition {
     let val = self.getValue();
     console.log(val);
     return arr.buffer;
-  }
+  };
 }
 
 Deno.test("WASM Worker Should have wasm methods loaded from module", async () => {
