@@ -1,4 +1,5 @@
 # Span: A Web Worker Bridging Module
+
 [![deno module](https://shield.deno.dev/x/span)](https://deno.land/x/span)
 [![Unit Test CI](https://github.com/joshLong145/Span/actions/workflows/test.yml/badge.svg)](https://github.com/joshLong145/Span/actions/workflows/test.yml)
 
@@ -104,20 +105,20 @@ class Example extends WorkerDefinition {
     super();
   }
 
-  public addOne(
+  addOne = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     console.log("param name value: ", args.name);
     const arr = new Int8Array(buffer);
     arr[0] += 1;
     return buffer;
   }
 
-  public fib(
+  fib = (
     buffer: SharedArrayBuffer,
     module: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     let i;
     const arr = new Uint8Array(buffer);
     arr[0] = 0;
@@ -178,7 +179,7 @@ class Example extends WasmWorkerDefinition {
         super(modulePath);
     }
 
-    public test(buffer: SharedArrayBuffer, module: any) {
+    addOne = (buffer: SharedArrayBuffer, module: any) => {
         let arr = new Int8Array(buffer);
         arr[0] += 1
         //@ts-ignore
@@ -204,7 +205,7 @@ const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(e
 
 wrapper.start();
 //@ts-ignore
-await example.execute("test").then((buf: SharedArrayBuffer) => {
+await example.execute("addOne").then((buf: SharedArrayBuffer) => {
     console.log("buffer returned ", new Int32Array(buf))
 });
 
