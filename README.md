@@ -45,20 +45,20 @@ class Example extends WorkerDefinition {
     super();
   }
 
-  public addOne(
+  addOne = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     console.log("param name value: ", args.name);
     const arr = new Int8Array(buffer);
     arr[0] += 1;
     return buffer;
   }
 
-  public fib(
+  fib = (
     buffer: SharedArrayBuffer,
     module: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     let i;
     const arr = new Uint8Array(buffer);
     arr[0] = 0;
