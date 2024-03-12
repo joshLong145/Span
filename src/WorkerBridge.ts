@@ -32,8 +32,8 @@ export class WorkerBridge<T> {
 
     for (const worker of this._workers) {
       root += `
-            // this buffer size should be a config option, 
-            _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? new SharedArrayBuffer(1024) : new Uint8Array();\n
+// this buffer size should be a config option, 
+_bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? new SharedArrayBuffer(1024) : new Uint8Array();\n
             `;
     }
 
@@ -70,7 +70,7 @@ export class WorkerBridge<T> {
       prmsRes = res;
     });
 
-    self.worker = new Worker(objUrl, { deno: true, type: "module" });
+    self.worker = this._genWebWorker(objUrl);
     self.worker.onmessage = (e: MessageEvent<any>) => {
       if (e.data.ready) {
         prmsRes();
@@ -193,6 +193,12 @@ for (const key of Object.keys(${this._namespace})) {
 self['worker'] = worker;
 `;
     return root;
+  }
+
+  private _genWebWorker(objUrl: URL): any {
+    const worker = new Worker(objUrl, { deno: true, type: "module" });
+
+    return worker;
   }
 
   public createBridge(worker: string): string {
