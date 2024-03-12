@@ -20,6 +20,7 @@ export class WorkerManager {
     return `const execData = [];
             self.setInterval(async () => {
             if (execData.length > 0 && workerState === "READY") {
+                try {
                   const task = execData.shift();
                   let res = _execMap[task.name](task.buffer, task.args);
                   if (res.then) {
@@ -33,8 +34,11 @@ export class WorkerManager {
                       state: workerState,
                       res
                   });
+                } catch(e) {
+                  console.error('Error while executing task. Error trace:' + e.message);
+                }
             }
-          }, 100);
+          }, 1);
 
           self.onmessage = (e) => {
             execData.push(e.data);

@@ -41,7 +41,8 @@ export class WorkerDefinition {
   /**
    * worker instance, can be stopped by calling terminateWorker
    */
-  public worker: Worker | undefined = undefined;
+  // deno-lint-ignore no-explicit-any
+  public worker: any | undefined = undefined;
 
   constructor() {}
 

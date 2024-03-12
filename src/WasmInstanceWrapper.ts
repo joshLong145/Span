@@ -24,7 +24,8 @@ export class WasmWorkerDefinition {
   /**
    * Worker instance, can be stopped by calling terminateWorker
    */
-  public worker: Worker | undefined = undefined;
+  // deno-lint-ignore no-explicit-any
+  public worker: any | undefined = undefined;
 
   /**
    * Path to the WASM module being loaded into the worker.
@@ -203,7 +204,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
     }
     const enc = new TextEncoder();
     this._generate();
-    let worker = `
+    const worker = `
 ${this.workerString}\n
 ${this?._wm?.CreateWorkerMap()}\n
 ${this?._wm?.CreateOnMessageHandler()}`;
