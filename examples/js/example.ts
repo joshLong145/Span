@@ -1,16 +1,15 @@
 import { InstanceConfiguration } from "../../src/types.ts";
 import { InstanceWrapper, WorkerDefinition } from "./../../src/mod.ts";
-import { sleep } from "https://deno.land/x/sleep/mod.ts";
 
 class Example extends WorkerDefinition {
   public constructor() {
     super();
   }
 
-  addOne = async (
+  addOne = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): Promise<SharedArrayBuffer> => {
+  ): SharedArrayBuffer => {
     console.log("param name value: ", args.name);
     const arr = new Uint32Array(buffer);
     arr[0] += 1;
@@ -18,10 +17,10 @@ class Example extends WorkerDefinition {
     return buffer;
   };
 
-  fib = async (
+  fib = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): Promise<SharedArrayBuffer> => {
+  ): SharedArrayBuffer => {
     let i;
     const arr = new Uint32Array(buffer);
     arr[0] = 0;
@@ -31,13 +30,14 @@ class Example extends WorkerDefinition {
       arr[i] = arr[i - 2] + arr[i - 1];
       console.log(arr[i]);
     }
-    let adapter;
-    await navigator.gpu.requestAdapter().then((adpt) => {
-      adapter = adpt;
-      console.log(adapter);
-    });
+    return buffer;
+  };
 
-    let keyPair = await crypto.subtle.generateKey(
+  getKeyPair = async (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    const keyPair = await crypto.subtle.generateKey(
       {
         name: "RSA-OAEP",
         modulusLength: 4096,
@@ -47,6 +47,17 @@ class Example extends WorkerDefinition {
       true,
       ["encrypt", "decrypt"],
     );
+
+    console.log("generated key", keyPair);
+    return buffer;
+  };
+
+  getGpuAdapter = async (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    const adapter = await navigator.gpu.requestAdapter();
+    console.log("gpu adapter", adapter);
 
     return buffer;
   };
@@ -76,11 +87,15 @@ await example.execute("addOne", { name: "foo" }).then(
   },
 );
 
+await example.execute("getKeyPair");
+
 await example.execute("fib", { count: 46 }).then(
   (buffer: SharedArrayBuffer) => {
     console.log("fib result ", new Uint32Array(buffer));
     console.log("last fib number", new Uint32Array(buffer)[46]);
   },
 );
+await example.execute("getGpuAdapter");
+await example.execute("getGpuAdapter");
 
 example.terminateWorker();

@@ -11,7 +11,7 @@ class TestExample extends WorkerDefinition {
 
   foo = (
     buffer: SharedArrayBuffer,
-    module: Record<string, any>,
+    _args: Record<string, any>,
   ): ArrayBuffer => {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
@@ -23,7 +23,21 @@ class TestExample extends WorkerDefinition {
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
   ): SharedArrayBuffer => {
-    const arr = new Uint8Array(buffer)[0] = args.value;
+    const _arr = new Uint8Array(buffer)[0] = args.value;
+
+    return buffer;
+  };
+
+  testAsync = async (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    const prms: Promise<void> = new Promise((res, _rej) => {
+      const a = 2 + 2;
+      console.log("a value is ", a);
+      res();
+    });
+    await prms;
     return buffer;
   };
 }
@@ -41,6 +55,8 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
   await inst.execute("foo").then((buf) => {
     assertEquals(new Uint32Array(buf)[0], 2);
   });
+
+  await inst.execute("testAsync");
 
   inst.terminateWorker();
 });
