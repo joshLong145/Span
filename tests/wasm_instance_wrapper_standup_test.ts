@@ -12,14 +12,14 @@ class TestExample extends WasmWorkerDefinition {
     super(modulePath);
   }
 
-  public test2(buffer: SharedArrayBuffer, module: Record<string, any>) {
+  test2 = (buffer: SharedArrayBuffer, _module: Record<string, any>) => {
     let arr = new Int8Array(buffer);
     arr[0] += 1;
 
     //@ts-ignore method injection from wasm.
     self.primeGenerator();
     return arr.buffer;
-  }
+  };
 }
 
 Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", () => {
@@ -42,7 +42,7 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let mod = Deno.readAllSync(fd);
+        const mod = Deno.readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -76,7 +76,7 @@ Deno.test("Wasm class members should be defined", () => {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let mod = Deno.readAllSync(fd);
+        const mod = Deno.readAllSync(fd);
         fd.close();
         return mod;
       },

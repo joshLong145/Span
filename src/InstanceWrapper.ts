@@ -41,7 +41,8 @@ export class WorkerDefinition {
   /**
    * worker instance, can be stopped by calling terminateWorker
    */
-  public worker: Worker | undefined = undefined;
+  // deno-lint-ignore no-explicit-any
+  public worker: any | undefined = undefined;
 
   constructor() {}
 
@@ -117,12 +118,14 @@ export class InstanceWrapper<T extends WorkerDefinition> {
   }
 
   private _generate(): void {
-    const keys = Reflect.ownKeys(
+    const protoKeys = Reflect.ownKeys(
       Object.getPrototypeOf(this._instance),
     ) as [keyof T];
+    const baseKeys = Object.keys(this._instance) as [keyof T];
+
     const wrps: WorkerWrapper[] = [];
-    for (const key of keys) {
-      key !== "constructor" &&
+    for (const key of protoKeys.concat(baseKeys)) {
+      key !== "constructor" && key !== "execMap" && key !== "worker" &&
         wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
     }
 

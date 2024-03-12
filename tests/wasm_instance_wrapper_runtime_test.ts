@@ -11,46 +11,59 @@ class GoTestExample extends WasmWorkerDefinition {
     super(modulePath);
   }
 
-  public testBuffer(
+  testBuffer = (
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
-  ): SharedArrayBuffer {
-    let arr = new Int8Array(buffer);
+    _args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    const arr = new Int8Array(buffer);
     arr[0] += 1;
-    //@ts-ignore wasm
+    //@ts-ignore wasm module function
     self.primeGenerator();
 
     return buffer;
-  }
+  };
 
-  public testParams(
+  testParams = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
-    let arr = new Int32Array(buffer);
+  ): SharedArrayBuffer => {
+    const arr = new Int32Array(buffer);
     arr[0] = args.foo;
     return buffer;
-  }
+  };
+
+  testAsync = async (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    const prms: Promise<void> = new Promise((res, _rej) => {
+      const a = 2 + 2;
+      console.log("a value is ", a);
+      res();
+    });
+    await prms;
+    return buffer;
+  };
 }
 class RustTestExample extends WasmWorkerDefinition {
   public constructor(modulePath: string) {
     super(modulePath);
   }
 
-  public test2(buffer: SharedArrayBuffer, args: Record<string, any>) {
+  test2 = (buffer: SharedArrayBuffer, args: Record<string, any>) => {
     console.log(args.dom);
-    let arr = new Int8Array(buffer);
+    const arr = new Int8Array(buffer);
     arr[0] += 1;
-    //@ts-ignore
+    //@ts-ignore was module function
     self.greet();
-    //@ts-ignore
-    let val = self.getValue();
+    //@ts-ignore wasm module function
+    const val = self.getValue();
     console.log(val);
     return arr.buffer;
-  }
+  };
 }
 
-Deno.test("WASM Worker Should have wasm methods loaded from module", async () => {
+Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", async () => {
   const example: GoTestExample = new GoTestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
@@ -68,7 +81,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from module", async () =>
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let mod = Deno.readAllSync(fd);
+        const mod = Deno.readAllSync(fd);
         fd.close();
         return mod;
       },

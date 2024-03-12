@@ -1,26 +1,28 @@
 import { InstanceConfiguration } from "../../src/types.ts";
 import { InstanceWrapper, WorkerDefinition } from "./../../src/mod.ts";
+
 class Example extends WorkerDefinition {
   public constructor() {
     super();
   }
 
-  public addOne(
+  addOne = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     console.log("param name value: ", args.name);
-    const arr = new Int8Array(buffer);
+    const arr = new Uint32Array(buffer);
     arr[0] += 1;
-    return buffer;
-  }
 
-  public fib(
+    return buffer;
+  };
+
+  fib = (
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
-  ): SharedArrayBuffer {
+  ): SharedArrayBuffer => {
     let i;
-    const arr = new Uint8Array(buffer);
+    const arr = new Uint32Array(buffer);
     arr[0] = 0;
     arr[1] = 1;
 
@@ -28,9 +30,37 @@ class Example extends WorkerDefinition {
       arr[i] = arr[i - 2] + arr[i - 1];
       console.log(arr[i]);
     }
+    return buffer;
+  };
+
+  getKeyPair = async (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    const keyPair = await crypto.subtle.generateKey(
+      {
+        name: "RSA-OAEP",
+        modulusLength: 4096,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt"],
+    );
+
+    console.log("generated key", keyPair);
+    return buffer;
+  };
+
+  getGpuAdapter = async (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    const adapter = await navigator.gpu.requestAdapter();
+    console.log("gpu adapter", adapter);
 
     return buffer;
-  }
+  };
 }
 
 const example: Example = new Example();
@@ -41,6 +71,10 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 );
 
 wrapper.start();
+
+(example as any).worker.onerror = (event: any) => {
+  console.log("an error occured ", event);
+};
 
 await example.execute("addOne", { name: "foo" }).then(
   (buf: SharedArrayBuffer) => {
@@ -53,11 +87,15 @@ await example.execute("addOne", { name: "foo" }).then(
   },
 );
 
-await example.execute("fib", { count: 10 }).then(
+await example.execute("getKeyPair");
+
+await example.execute("fib", { count: 46 }).then(
   (buffer: SharedArrayBuffer) => {
-    console.log("fib result ", new Uint8Array(buffer));
-    console.log("last fib number", new Uint8Array(buffer)[10]);
+    console.log("fib result ", new Uint32Array(buffer));
+    console.log("last fib number", new Uint32Array(buffer)[46]);
   },
 );
+await example.execute("getGpuAdapter");
+await example.execute("getGpuAdapter");
 
 example.terminateWorker();

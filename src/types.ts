@@ -67,7 +67,14 @@ export type WorkerInstance<T extends WorkerDefinition> = WorkerFunctions<
   T
 >;
 
-export declare type WorkerMethod = (
+export declare type WorkerMethod = SyncWorkerMethod | AsyncWorkerMethod;
+
+export declare type AsyncWorkerMethod = (
+  buffer: SharedArrayBuffer,
+  module: Record<string, any>,
+) => Promise<ArrayBuffer>;
+
+export declare type SyncWorkerMethod = (
   buffer: SharedArrayBuffer,
   module: Record<string, any>,
 ) => ArrayBuffer;

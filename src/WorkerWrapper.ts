@@ -15,7 +15,7 @@ export class WorkerWrapper {
   }
 
   private _serializeWorker(): string {
-    return `function ${this._worker.toString()}`;
+    return `${this._worker.toString()}`;
   }
 
   public CreateExecMapping(): string {

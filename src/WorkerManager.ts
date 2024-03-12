@@ -18,19 +18,27 @@ export class WorkerManager {
 
   public CreateOnMessageHandler(): string {
     return `const execData = [];
-            self.setInterval(() => {
+            self.setInterval(async () => {
             if (execData.length > 0 && workerState === "READY") {
+                try {
                   const task = execData.shift();
                   let res = _execMap[task.name](task.buffer, task.args);
+                  if (res.then) {
+                    res = await res;
+                  }
+
                   postMessage({
                       name: task.name,
                       buffer: task.buffer,
                       id: task.id,
-                      res,
                       state: workerState,
+                      res
                   });
+                } catch(e) {
+                  console.error('Error while executing task. Error trace:' + e.message);
+                }
             }
-          }, 10);
+          }, 1);
 
           self.onmessage = (e) => {
             execData.push(e.data);

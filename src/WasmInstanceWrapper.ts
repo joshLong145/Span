@@ -24,7 +24,8 @@ export class WasmWorkerDefinition {
   /**
    * Worker instance, can be stopped by calling terminateWorker
    */
-  public worker: Worker | undefined = undefined;
+  // deno-lint-ignore no-explicit-any
+  public worker: any | undefined = undefined;
 
   /**
    * Path to the WASM module being loaded into the worker.
@@ -81,14 +82,18 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
   }
 
   private _generate(): void {
-    const keys = Reflect.ownKeys(Object.getPrototypeOf(this._instance)) as [
-      keyof T,
-    ];
+    const protoKeys = Reflect.ownKeys(
+      Object.getPrototypeOf(this._instance),
+    ) as [keyof T];
+    const baseKeys = Object.keys(this._instance) as [keyof T];
+
     const wrps: WorkerWrapper[] = [];
-    for (const key of keys) {
-      key !== "constructor" &&
+    for (const key of protoKeys.concat(baseKeys)) {
+      key !== "constructor" && key !== "execMap" && key !== "worker" &&
+        key !== "ModulePath" && key !== "workerString" &&
         wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
     }
+
     this._wm = new WorkerManager(wrps);
     this._wb = new WorkerBridge({
       workers: wrps,
@@ -199,7 +204,7 @@ export class WasmInstanceWrapper<T extends WasmWorkerDefinition> {
     }
     const enc = new TextEncoder();
     this._generate();
-    let worker = `
+    const worker = `
 ${this.workerString}\n
 ${this?._wm?.CreateWorkerMap()}\n
 ${this?._wm?.CreateOnMessageHandler()}`;
