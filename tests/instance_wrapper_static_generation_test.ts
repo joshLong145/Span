@@ -6,6 +6,12 @@ import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
 
+declare global {
+  var foo: (args: Record<string, any>) => void;
+  var bar: (args: Record<string, any>) => void;
+  var worker: Worker;
+}
+
 class TestExample extends WorkerDefinition {
   public constructor() {
     super();
@@ -45,9 +51,9 @@ Deno.test("Generated bridge should load functions into global", async () => {
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
   await import(__dirname + "/../public/bridge.js");
-  //@ts-ignore
+
   assertExists(self["bar"]);
-  //@ts-ignore
+
   assertExists(self["bar"]);
   await self["foo"]({ hey: "wow" });
 
