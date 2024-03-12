@@ -1,8 +1,5 @@
 //@ts-nocheck
-import {
-  assertEquals,
-  assertExists,
-} from "https://deno.land/std@0.210.0/assert/mod.ts";
+
 import {
   WasmInstanceWrapper,
   WasmWorkerDefinition,
@@ -13,16 +10,19 @@ class TestExample extends WasmWorkerDefinition {
     super(modulePath);
   }
 
-  public test2(buffer: SharedArrayBuffer, module: Record<string, any>) {
-    let arr = new Int8Array(buffer);
+  test2 = (
+    buffer: SharedArrayBuffer,
+    _module: Record<string, any>,
+  ): SharedArrayBuffer => {
+    const arr = new Int8Array(buffer);
     arr[0] += 1;
 
     self.primeGenerator();
     return arr.buffer;
-  }
+  };
 }
 
-Deno.bench("Wasm Worker Start Go Module loading", async (b) => {
+Deno.bench("Wasm Worker Start Go Module loading", async (_b) => {
   const example: WasmWorkerDefinition = new TestExample(
     "./examples/wasm/tiny-go/primes-2.wasm",
   );
@@ -33,7 +33,7 @@ Deno.bench("Wasm Worker Start Go Module loading", async (b) => {
     example,
     {
       outputPath: "output",
-      namespace: "asd",
+      namespace: "testing",
       addons: [
         "./lib/wasm_exec_tiny.js",
       ],
@@ -42,18 +42,19 @@ Deno.bench("Wasm Worker Start Go Module loading", async (b) => {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let mod = Deno.readAllSync(fd);
+        const mod = Deno.readFileSync(fd);
         fd.close();
         return mod;
       },
     },
   );
+
   await wrapper.start().then(() => {
     example.terminateWorker();
   });
 });
 
-Deno.bench("Wasm Worker Start Rust Module loading", async (b) => {
+Deno.bench("Wasm Worker Start Rust Module loading", async (_b) => {
   const example: WasmWorkerDefinition = new TestExample(
     "./examples/wasm/rust/wasm_test_bg.wasm",
   );
@@ -73,12 +74,13 @@ Deno.bench("Wasm Worker Start Rust Module loading", async (b) => {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let mod = Deno.readAllSync(fd);
+        const mod = Deno.readAllSync(fd);
         fd.close();
         return mod;
       },
     },
   );
+
   await wrapper.start().then(() => {
     example.terminateWorker();
   });
