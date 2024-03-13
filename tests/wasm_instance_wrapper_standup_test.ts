@@ -2,14 +2,11 @@ import {
   assertEquals,
   assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
-import {
-  WasmInstanceWrapper,
-  WasmWorkerDefinition,
-} from "../src/WasmInstanceWrapper.ts";
+import { InstanceWrapper, WorkerDefinition } from "../src/InstanceWrapper.ts";
 
-class TestExample extends WasmWorkerDefinition {
-  public constructor(modulePath: string) {
-    super(modulePath);
+class TestExample extends WorkerDefinition {
+  public constructor() {
+    super();
   }
 
   test2 = (buffer: SharedArrayBuffer, _module: Record<string, any>) => {
@@ -23,11 +20,9 @@ class TestExample extends WasmWorkerDefinition {
 }
 
 Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", () => {
-  const example: TestExample = new TestExample(
-    "./examples/wasm/tiny-go/primes-2.wasm",
-  );
+  const example: TestExample = new TestExample();
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
   >(
     example,
@@ -57,11 +52,9 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
 });
 
 Deno.test("Wasm class members should be defined", () => {
-  const example: TestExample = new TestExample(
-    "./examples/wasm/tiny-go/primes-2.wasm",
-  );
+  const example: TestExample = new TestExample();
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
   >(
     example,
@@ -90,11 +83,9 @@ Deno.test("Wasm class members should be defined", () => {
 });
 
 Deno.test("Wasm class should have correct worker number on start", () => {
-  const example: TestExample = new TestExample(
-    "./examples/wasm/tiny-go/primes-2.wasm",
-  );
+  const example: TestExample = new TestExample();
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
   >(
     example,
@@ -124,11 +115,9 @@ Deno.test("Wasm class should have correct worker number on start", () => {
 });
 
 Deno.test("Wasm class ", () => {
-  const example: TestExample = new TestExample(
-    "./examples/wasm/tiny-go/primes-2.wasm",
-  );
+  const example: TestExample = new TestExample();
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
   >(
     example,

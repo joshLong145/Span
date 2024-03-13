@@ -3,14 +3,13 @@ import {
   assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 
-import { WasmInstanceWrapper } from "../src/mod.ts";
-import { WasmWorkerDefinition } from "../src/WasmInstanceWrapper.ts";
+import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std@0.211.0/fs/exists.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
 
-class RustTestExample extends WasmWorkerDefinition {
-  public constructor(modulePath: string) {
-    super(modulePath);
+class RustTestExample extends WorkerDefinition {
+  public constructor() {
+    super();
   }
 
   test2 = (buffer: SharedArrayBuffer, args: Record<string, any>) => {
@@ -41,11 +40,9 @@ class RustTestExample extends WasmWorkerDefinition {
 }
 
 Deno.test("WASM Worker Should generate worker and load functions into global", async () => {
-  const example: RustTestExample = new RustTestExample(
-    "./examples/wasm/rust/wasm_test_bg.wasm",
-  );
+  const example: RustTestExample = new RustTestExample();
 
-  const wrapper: WasmInstanceWrapper<RustTestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<RustTestExample> = new InstanceWrapper<
     RustTestExample
   >(
     example,
@@ -54,13 +51,14 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
         "./lib/wasm_test.js",
       ],
       outputPath: "./public/wasm",
-      namespace: "test",
+      namespace: "wasmTest",
+      modulePath: "./examples/wasm/rust/wasm_test_bg.wasm",
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let source = Deno.readAllSync(fd);
+        const source = Deno.readAllSync(fd);
         fd.close();
         return source;
       },

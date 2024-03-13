@@ -38,18 +38,23 @@ class TestExample extends WorkerDefinition {
 Deno.test("Generated bridge should load functions into global", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    outputPath: "./public",
+    outputPath: "./public/js",
     namespace: "test",
   });
+
   if (!existsSync("./public")) {
     Deno.mkdirSync("./public");
+  }
+
+  if (!existsSync("./public/js")) {
+    Deno.mkdirSync("./public/js");
   }
 
   wrapper.create({
     writeFileSync: Deno.writeFileSync,
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-  await import(__dirname + "/../public/bridge.js");
+  await import(__dirname + "/../public/js/bridge.js");
 
   assertExists(self["bar"]);
 
