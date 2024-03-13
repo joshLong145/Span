@@ -1,6 +1,5 @@
 //@ts-nocheck working out type issues
 
-import { reset } from "https://deno.land/std@0.210.0/fmt/colors.ts";
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export interface BridgeConfiguration {

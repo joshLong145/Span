@@ -172,11 +172,10 @@ Below we provide the go WASM runtime as an `addon` and give a callback for
 loading the module at the given file path.
 
 ```javascript
-import { WasmInstanceWrapper, WasmWorkerDefinition } from "./../../src/mod.ts";
-class Example extends WasmWorkerDefinition {
+class Example extends WorkerDefinition {
 
-    public constructor(modulePath: string) {
-        super(modulePath);
+    public constructor() {
+        super();
     }
 
     addOne = (buffer: SharedArrayBuffer, module: any) => {
@@ -188,12 +187,13 @@ class Example extends WasmWorkerDefinition {
     }
 }
 
-const example: Example = new Example("./examples/wasm/primes-2.wasm");
+const example: Example = new Example();
 
-const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(example, {
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, {
      addons: [
       "./lib/wasm_exec_tiny.js",
     ],
+    modulePath: "./examples/wasm/primes-2.wasm",
     addonLoader: (path: string) => {
       return Deno.readTextFileSync(path);
     },
@@ -204,7 +204,7 @@ const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(e
 });
 
 wrapper.start();
-//@ts-ignore
+
 await example.execute("addOne").then((buf: SharedArrayBuffer) => {
     console.log("buffer returned ", new Int32Array(buf))
 });

@@ -10,7 +10,7 @@ export class WorkerWrapper {
     this._worker = method;
   }
 
-  get WorkerName() {
+  get WorkerName(): string {
     return this._worker.name;
   }
 
