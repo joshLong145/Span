@@ -6,15 +6,18 @@ import { WorkerWrapper } from "./WorkerWrapper.ts";
 export interface BridgeConfiguration {
   namespace: string;
   workers: WorkerWrapper[];
+  modulePath: string;
 }
 
 export class WorkerBridge<T> {
   private _workers;
   private _namespace;
+  private _modulePath;
 
   constructor(config: BridgeConfiguration) {
     this._workers = config.workers;
     this._namespace = config.namespace;
+    this._modulePath = config.modulePath;
   }
 
   public bufferMap(self: any): void {
@@ -102,7 +105,6 @@ function uuidv4() {
 }
 const _executionMap = {}
 let worker;
-let workerState;
 let prmsRes;
 let moduleWait = new Promise((res, rej) => {
   prmsRes = res;

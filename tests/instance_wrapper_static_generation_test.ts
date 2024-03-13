@@ -1,7 +1,6 @@
-import {
-  assertEquals,
-  assertExists,
-} from "https://deno.land/std@0.210.0/assert/mod.ts";
+//@ts-nocheck
+
+import { assertExists } from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
@@ -31,7 +30,7 @@ class TestExample extends WorkerDefinition {
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
   ): SharedArrayBuffer => {
-    const arr = new Uint8Array(buffer)[0] = args.value;
+    const _arr = new Uint8Array(buffer)[0] = args.value;
     return buffer;
   };
 }
