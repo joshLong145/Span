@@ -8,6 +8,10 @@
     "gen-npm": "deno run -A --no-check scripts/gen-npm.ts"
   },
   "exclude": [
-    "./examples/*.ts"
-  ]
+    "./examples/*.ts",
+    "./lib/*.js"
+  ],
+  "name": "@joshlong145/span",
+  "version": "0.5.0",
+  "exports": "./src/mod.ts"
 }

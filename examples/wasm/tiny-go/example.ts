@@ -1,27 +1,30 @@
 import {
-  WasmInstanceWrapper,
-  WasmWorkerDefinition,
-} from "./../../../src/WasmInstanceWrapper.ts";
+  InstanceWrapper,
+  WorkerDefinition,
+} from "../../../src/InstanceWrapper.ts";
 
-class Example extends WasmWorkerDefinition {
-  public constructor(modulePath: string) {
-    super(modulePath);
+class Example extends WorkerDefinition {
+  public constructor() {
+    super();
   }
 
-  public test2(buffer: SharedArrayBuffer, args: Record<string, any>) {
-    let arr = new Int8Array(buffer);
+  test2 = (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    const arr = new Int8Array(buffer);
     arr[0] += 1;
     //@ts-ignore
     self.primeGenerator();
-    return arr.buffer;
-  }
+    return arr.buffer as SharedArrayBuffer;
+  };
 
-  public test1(
+  test1 = (
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
-  ): SharedArrayBuffer {
-    let arr = new Int32Array(buffer);
-    let myString = "A rather long string of English text, an error message \
+    _args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    const arr = new Int32Array(buffer);
+    const myString = "A rather long string of English text, an error message \
                 actually that just keeps going and going -- an error \
                 message to make the Energizer bunny blush (right through \
                 those Schwarzenegger shades)! Where was I? Oh yes, \
@@ -37,14 +40,12 @@ class Example extends WasmWorkerDefinition {
       arr[index] = hash;
     }
     return buffer;
-  }
+  };
 }
 
-const example: Example = new Example(
-  "./examples/wasm/tiny-go/primes-2.wasm",
-);
+const example: Example = new Example();
 
-const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(
+const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
   {
     outputPath: "output",
@@ -52,6 +53,7 @@ const wrapper: WasmInstanceWrapper<Example> = new WasmInstanceWrapper<Example>(
     addons: [
       "./lib/wasm_exec_tiny.js",
     ],
+    modulePath: "./examples/wasm/tiny-go/primes-2.wasm",
     addonLoader: (path: string) => {
       return Deno.readTextFileSync(path);
     },
@@ -81,7 +83,8 @@ await example.execute("test2").then((buf: SharedArrayBuffer) => {
 
 example.terminateWorker();
 
-wrapper.restart();
+await wrapper.restart();
+console.log("restarting web worker");
 
 await example.execute("test1").then((buf: SharedArrayBuffer) => {
   console.log("hello", new Int32Array(buf));

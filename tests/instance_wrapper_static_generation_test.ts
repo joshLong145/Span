@@ -1,7 +1,6 @@
-import {
-  assertEquals,
-  assertExists,
-} from "https://deno.land/std@0.210.0/assert/mod.ts";
+//@ts-nocheck
+
+import { assertExists } from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
@@ -31,7 +30,7 @@ class TestExample extends WorkerDefinition {
     buffer: SharedArrayBuffer,
     args: Record<string, any>,
   ): SharedArrayBuffer => {
-    const arr = new Uint8Array(buffer)[0] = args.value;
+    const _arr = new Uint8Array(buffer)[0] = args.value;
     return buffer;
   };
 }
@@ -39,18 +38,23 @@ class TestExample extends WorkerDefinition {
 Deno.test("Generated bridge should load functions into global", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    outputPath: "./public",
+    outputPath: "./public/js",
     namespace: "test",
   });
+
   if (!existsSync("./public")) {
     Deno.mkdirSync("./public");
+  }
+
+  if (!existsSync("./public/js")) {
+    Deno.mkdirSync("./public/js");
   }
 
   wrapper.create({
     writeFileSync: Deno.writeFileSync,
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-  await import(__dirname + "/../public/bridge.js");
+  await import(__dirname + "/../public/js/bridge.js");
 
   assertExists(self["bar"]);
 

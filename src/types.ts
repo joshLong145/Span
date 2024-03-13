@@ -1,5 +1,4 @@
 import { WorkerDefinition } from "./InstanceWrapper.ts";
-import { WasmWorkerDefinition } from "./WasmInstanceWrapper.ts";
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export interface BridgeConfiguration {
@@ -34,6 +33,11 @@ export interface InstanceConfiguration {
     returns the WASM module as a Uint8Array
   */
   moduleLoader?: (path: string) => Uint8Array;
+
+  /*
+    path on disk to a compiled wasm module
+  */
+  modulePath?: string;
 }
 
 export interface DiskIOProvider {
@@ -60,8 +64,6 @@ export type WorkerFunctions<B, T extends B> = {
     : BaseFunctionTypes<T>;
 };
 
-export type WasmWorkerInstance<T extends WasmWorkerDefinition> =
-  WorkerFunctions<WasmWorkerDefinition, T>;
 export type WorkerInstance<T extends WorkerDefinition> = WorkerFunctions<
   WorkerDefinition,
   T

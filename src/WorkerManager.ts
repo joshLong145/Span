@@ -2,9 +2,11 @@ import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export class WorkerManager {
   private _workers: WorkerWrapper[];
+  private _namespace: string | undefined;
 
-  constructor(workers: WorkerWrapper[]) {
+  constructor(workers: WorkerWrapper[], namespace: string) {
     this._workers = workers;
+    this._namespace = namespace;
   }
 
   public CreateWorkerMap(): string {
@@ -19,7 +21,9 @@ export class WorkerManager {
   public CreateOnMessageHandler(): string {
     return `const execData = [];
             self.setInterval(async () => {
-            if (execData.length > 0 && workerState === "READY") {
+            if (execData.length > 0 && ${
+      this._namespace != "" ? this._namespace : "span"
+    }.workerState === "READY") {
                 try {
                   const task = execData.shift();
                   let res = _execMap[task.name](task.buffer, task.args);
@@ -31,7 +35,9 @@ export class WorkerManager {
                       name: task.name,
                       buffer: task.buffer,
                       id: task.id,
-                      state: workerState,
+                      state: ${
+      this._namespace != "" ? this._namespace : "span"
+    }.workerState,
                       res
                   });
                 } catch(e) {

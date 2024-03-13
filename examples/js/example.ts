@@ -72,7 +72,7 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 
 wrapper.start();
 
-(example as any).worker.onerror = (event: any) => {
+example.worker.onerror = (event: any) => {
   console.log("an error occured ", event);
 };
 

@@ -1,11 +1,8 @@
 //@ts-nocheck
 
-import {
-  WasmInstanceWrapper,
-  WasmWorkerDefinition,
-} from "../src/WasmInstanceWrapper.ts";
+import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 
-class TestExample extends WasmWorkerDefinition {
+class TestExample extends WorkerDefinition {
   public constructor(modulePath: string) {
     super(modulePath);
   }
@@ -23,11 +20,9 @@ class TestExample extends WasmWorkerDefinition {
 }
 
 Deno.bench("Wasm Worker Start Go Module loading", async (_b) => {
-  const example: WasmWorkerDefinition = new TestExample(
-    "./examples/wasm/tiny-go/primes-2.wasm",
-  );
+  const example: WorkerDefinition = new TestExample();
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     Example
   >(
     example,
@@ -37,12 +32,13 @@ Deno.bench("Wasm Worker Start Go Module loading", async (_b) => {
       addons: [
         "./lib/wasm_exec_tiny.js",
       ],
+      modulePath: "./examples/wasm/tiny-go/primes-2.wasm",
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readFileSync(fd);
+        const mod = Deno.readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -55,11 +51,9 @@ Deno.bench("Wasm Worker Start Go Module loading", async (_b) => {
 });
 
 Deno.bench("Wasm Worker Start Rust Module loading", async (_b) => {
-  const example: WasmWorkerDefinition = new TestExample(
-    "./examples/wasm/rust/wasm_test_bg.wasm",
-  );
+  const example: WorkerDefinition = new TestExample();
 
-  const wrapper: WasmInstanceWrapper<TestExample> = new WasmInstanceWrapper<
+  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     Example
   >(
     example,
@@ -69,6 +63,7 @@ Deno.bench("Wasm Worker Start Rust Module loading", async (_b) => {
       addons: [
         "./lib/wasm_test.js",
       ],
+      modulePath: "./examples/wasm/rust/wasm_test_bg.wasm",
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },

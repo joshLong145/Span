@@ -117,36 +117,6 @@ export class InstanceWrapper<T extends WorkerDefinition> {
     this._generate();
   }
 
-  private _generate(): void {
-    const protoKeys = Reflect.ownKeys(
-      Object.getPrototypeOf(this._instance),
-    ) as [keyof T];
-    const baseKeys = Object.keys(this._instance) as [keyof T];
-
-    const wrps: WorkerWrapper[] = [];
-    for (const key of protoKeys.concat(baseKeys)) {
-      key !== "constructor" && key !== "execMap" && key !== "worker" &&
-        wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
-    }
-
-    this._wm = new WorkerManager(wrps);
-    this._wb = new WorkerBridge({
-      workers: wrps,
-      namespace: this._config?.namespace as string,
-    });
-
-    let execFd = 'let workerState = "PENDING";';
-
-    for (const addon of this._config?.addons ?? []) {
-      const source = this._config.addonLoader
-        ? this._config.addonLoader(addon)
-        : "";
-      execFd = execFd ? `${execFd}\n${source}` : source;
-    }
-
-    this._workerString = execFd;
-  }
-
   /**
    * Create the web worker, adds an instance of a Worker object to the given class instance.
    * Current only supports the `onmessage` handler. but object may be accesed as the `worker` property
@@ -158,25 +128,35 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       (this._instance as WorkerDefinition).execMap[(w as any)._name] = w;
     }
 
+    this._workerString = this._workerString + "\n" +
+      this?._wm?.CreateWorkerMap() + "\n" +
+      this?._wm?.CreateOnMessageHandler();
+
+    // tell the host we can start as this is done in the wasm instance wrapper
+    // this will allow the promise being awaited to resolve by the caller.
+    this._workerString += this._config.modulePath
+      ? ""
+      : `postMessage({ready: true}); ${
+        this._config.namespace != undefined ? this._config.namespace : "span"
+      }.workerState = "READY";`;
+
     await this?._wb?.workerBootstrap(
       this._instance as T,
-      this._workerString + "\n" + this?._wm?.CreateWorkerMap() + "\n" +
-        this?._wm?.CreateOnMessageHandler() + "\n" +
-        // tell the host we can start as this is done in the wasm instance wrapper
-        // this will allow the promise being awaited to resolve by the caller.
-        'postMessage({ready: true}); workerState = "READY";',
+      this._workerString,
     );
   }
 
   /**
    * Regenerates the worker
    */
-  public restart() {
-    this?._wb?.workerBootstrap(
+  public async restart(): Promise<void> {
+    if (!this._workerString) {
+      throw new Error("Must call start before restart, Aborting operation");
+    }
+
+    await this?._wb?.workerBootstrap(
       this._instance as T,
-      this?._wm?.CreateWorkerMap() + "\n" +
-        this?._wm?.CreateOnMessageHandler() + "\n" +
-        'postMessage({ready: true}); workerState = "READY";',
+      this._workerString,
     );
   }
 
@@ -185,17 +165,127 @@ export class InstanceWrapper<T extends WorkerDefinition> {
    * the bootstrapping logic will load methods from the provided instance to the global object
    */
   public create(provider: DiskIOProvider): void {
-    const byteEncoder = new TextEncoder();
+    if (!this._config.outputPath) {
+      throw new Error(
+        "No output path provided in configuration, aborting generation",
+      );
+    }
+    const enc = new TextEncoder();
 
-    const worker = `${this._workerString}\n
-      ${this?._wm?.CreateWorkerMap()}\n${this._wm?.CreateOnMessageHandler()}` +
-      'self.postMessage({ready: true}); workerState = "READY"';
+    const worker = `
+      ${this._workerString}\n
+      ${this?._wm?.CreateWorkerMap()}\n
+      ${this?._wm?.CreateOnMessageHandler()}`;
 
     provider.writeFileSync(
-      `${this._config.outputPath}/bridge.js`,
-      byteEncoder.encode(
+      this._config.outputPath + "/bridge.js",
+      enc.encode(
         `${this?._wb?.createBridge(worker)}`,
       ),
     );
+  }
+
+  private _generate(): void {
+    const protoKeys = Reflect.ownKeys(
+      Object.getPrototypeOf(this._instance),
+    ) as [keyof T];
+    const baseKeys = Object.keys(this._instance) as [keyof T];
+
+    const wrps: WorkerWrapper[] = [];
+    for (const key of protoKeys.concat(baseKeys)) {
+      key !== "constructor" && key !== "execMap" && key !== "worker" &&
+        key !== "ModulePath" && key !== "workerString" &&
+        wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
+    }
+
+    this._wm = new WorkerManager(wrps, this._config.namespace ?? "");
+    this._wb = new WorkerBridge({
+      workers: wrps,
+      namespace: this._config?.namespace as string,
+      modulePath: this._config?.modulePath ?? "",
+    });
+
+    let execFd = `
+let ${this._config.namespace ?? "span"} = {}
+${this._config.namespace ?? "span"}.workerState = "PENDING";
+`;
+
+    for (const addon of this._config?.addons ?? []) {
+      const source = this._config.addonLoader
+        ? this._config.addonLoader(addon)
+        : "";
+      execFd = execFd ? `${execFd}\n${source}` : source;
+    }
+    this._workerString += execFd;
+    this._config.modulePath
+      ? this._workerString += this._genWebAssemblyBinding()
+      : this._workerString += `postMessage({ready: true}); ${
+        this._config.namespace ?? "span"
+      }.workerState = "READY";`;
+  }
+
+  private _genWebAssemblyBinding(): string {
+    const module = this._config.moduleLoader
+      ? this._config.moduleLoader(this._config?.modulePath ?? "")
+      : "";
+
+    let retStr = "";
+    retStr += `
+      self['mod'] = globalThis.Go ? new Go() : undefined;
+      var buffer = new ArrayBuffer(${module.length});
+      var uint8 = new Uint8Array(buffer);
+      uint8.set([
+    `;
+
+    for (let i = 0; i < module.length; i++) {
+      if (i == module.length - 1) {
+        retStr += module[i];
+        continue;
+      }
+      retStr += module[i] + ",";
+    }
+
+    return `
+      ${retStr}
+      ]);
+      if (typeof wasm_bindgen === "undefined" && typeof initSync === "undefined") {
+        WebAssembly.instantiate(uint8, self['mod'] ? self['mod'].importObject : {}).then((module) => {
+          // tell the host that we can start
+          self.mod && self.mod.run(module.instance);
+          self.module = module;
+          for (const key of Object.keys(self.module.instance.exports)) {
+            self[key] = self.module.instance.exports[key];
+          }
+          ${this._config.namespace ?? "span"}.workerState = "READY";
+          postMessage({
+            ready: true
+          })
+        });
+      } else {
+        if(typeof wasm_bindgen === "undefined") {
+          initSync && initSync(uint8);
+          for (const key of Object.keys(wasm)){
+            self[key] = wasm[key];
+          } 
+          ${this._config.namespace ?? "span"}.workerState = "READY";
+          postMessage({
+            ready: true
+          });
+        } else if(typeof wasm_bindgen !== "undefined") {
+          wasm_bindgen && ((module) =>{
+            self.module = module;
+            self.module.initSync(uint8);
+            for (const key of Object.keys(self.module)) {
+              self[key] = self.module[key];
+            }
+
+            ${this._config.namespace ?? "span"}.workerState = "READY";
+            postMessage({
+              ready: true
+            });
+          })(wasm_bindgen);
+        }
+      }
+    `;
   }
 }
