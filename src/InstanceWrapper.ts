@@ -190,12 +190,14 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       Object.getPrototypeOf(this._instance),
     ) as [keyof T];
     const baseKeys = Object.keys(this._instance) as [keyof T];
-
+    console.log("base keys", baseKeys, "instance prototype keys", protoKeys);
+    const allKeys = baseKeys.concat(protoKeys).filter((key) => {
+      return key !== "constructor" && key !== "execMap" && key !== "worker" &&
+        key !== "ModulePath" && key !== "workerString";
+    });
     const wrps: WorkerWrapper[] = [];
-    for (const key of protoKeys.concat(baseKeys)) {
-      key !== "constructor" && key !== "execMap" && key !== "worker" &&
-        key !== "ModulePath" && key !== "workerString" &&
-        wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
+    for (const key of allKeys) {
+      wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
     }
 
     this._wm = new WorkerManager(wrps, this._config.namespace ?? "");
