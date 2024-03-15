@@ -1,4 +1,4 @@
-name: Test Deno Module
+name: Publish
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.39.1]
+        deno-version: [1.41.2]
     steps:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
