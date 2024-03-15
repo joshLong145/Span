@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.39.1, 1.38.1]
+        deno-version: [1.39.1]
     steps:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
