@@ -81,6 +81,8 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
     await self["test2"]({ dom: "hey" });
     //@ts-ignore
     await self["asyncTest"]();
+    //@ts-ignore
+    await self["wasmTest.asyncTest"]();
   });
 
   //@ts-ignore

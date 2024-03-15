@@ -35,6 +35,7 @@ class TestExample extends WorkerDefinition {
     const prms: Promise<void> = new Promise((res, _rej) => {
       const a = 2 + 2;
       console.log("a value is ", a);
+      console.log("deno api", Deno);
       res();
     });
     await prms;

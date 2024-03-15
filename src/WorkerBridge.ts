@@ -11,7 +11,6 @@ export interface BridgeConfiguration {
 export class WorkerBridge<T> {
   private _workers;
   private _namespace;
-  private _modulePath;
 
   constructor(config: BridgeConfiguration) {
     this._workers = config.workers;
@@ -108,7 +107,7 @@ let prmsRes;
 let moduleWait = new Promise((res, rej) => {
   prmsRes = res;
 });
-console.log("loading worker");
+
 const blob = new Blob([new TextDecoder().decode(new Uint8Array(workerStr))],{ type: "application/typescript" });
 const objUrl = URL.createObjectURL(blob);            
 worker = new Worker(objUrl, {type: "module"});
@@ -188,8 +187,18 @@ worker.onmessage = function(e) {
 
     root += "}";
     root += `
-for (const key of Object.keys(${this._namespace})) {
-  self[key] = ${this._namespace}[key];
+for (const key of Object.keys(${this._namespace ?? "span"})) {
+  self["${this._namespace ?? "span"}"] =  self["${
+      this._namespace ?? "span"
+    }"] != undefined ? self["${this._namespace ?? "span"}"] : {};
+  self["${this._namespace ?? "span"}." + key] = ${
+      this._namespace ?? "span"
+    }[key];
+  console.log("bootstrapping methods to global namespace:", self["${
+      this._namespace ?? "span"
+    }." + key]);
+  self[key] = ${this._namespace ?? "span"}[key];
+  
 }
 self['worker'] = worker;
 `;
