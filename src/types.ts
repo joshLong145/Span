@@ -70,6 +70,22 @@ export type WorkerInstance<T extends WorkerDefinition> = WorkerFunctions<
 >;
 
 export declare type WorkerMethod = SyncWorkerMethod | AsyncWorkerMethod;
+export declare type WorkerPromise = Promise<SharedArrayBuffer> & {
+  resolve: (value: SharedArrayBuffer | PromiseLike<SharedArrayBuffer>) => void;
+  reject: (reason: any) => void;
+  timeout: (delay: number) => void;
+  wrapper: WorkerPromiseGeneratorNamed;
+
+  timerIds: number[];
+  settledCount: number;
+  name: string;
+};
+export declare type WorkerPromiseGenerator = (
+  args: Record<string, any>,
+) => WorkerPromise;
+export declare type WorkerPromiseGeneratorNamed =
+  & { _name: string }
+  & WorkerPromiseGenerator;
 
 export declare type AsyncWorkerMethod = (
   buffer: SharedArrayBuffer,

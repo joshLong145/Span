@@ -1,6 +1,11 @@
-//@ts-nocheck working out type issues
-
 import { WorkerWrapper } from "./WorkerWrapper.ts";
+import { WorkerDefinition } from "./mod.ts";
+import { WorkerInstance } from "./types.ts";
+import {
+  WorkerPromiseGenerator,
+  WorkerPromiseGeneratorNamed,
+} from "./types.ts";
+import { WorkerPromise } from "./types.ts";
 
 export interface BridgeConfiguration {
   namespace: string;
@@ -8,21 +13,20 @@ export interface BridgeConfiguration {
   modulePath: string;
 }
 
-export class WorkerBridge<T> {
+export class WorkerBridge {
   private _workers;
   private _namespace;
 
   constructor(config: BridgeConfiguration) {
     this._workers = config.workers;
     this._namespace = config.namespace;
-    this._modulePath = config.modulePath;
   }
 
-  public bufferMap(self: any): void {
-    self.bufferMap = {};
+  public bufferMap(self: WorkerDefinition): void {
     for (const worker of this._workers) {
       // this should be a config option
-      self.bufferMap[`${worker.WorkerName}`] = new SharedArrayBuffer(1024);
+      (self as WorkerDefinition).bufferMap[`${worker.WorkerName}`] =
+        new SharedArrayBuffer(1024);
     }
   }
 
@@ -47,17 +51,10 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
    * @param self
    * @param bridgeStr
    */
-  public async workerBootstrap(self: T, bridgeStr: string): Promise<void> {
-    self.uuidv4 = () => {
-      return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
-        /[018]/g,
-        (c) =>
-          (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(
-            16,
-          ),
-      );
-    };
-
+  public async workerBootstrap(
+    self: WorkerDefinition,
+    bridgeStr: string,
+  ): Promise<void> {
     self._executionMap = {};
     const workerBuff = bridgeStr;
     const blob = new Blob(
@@ -66,8 +63,8 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
     );
     const objUrl = URL.createObjectURL(blob);
 
-    let prmsRes;
-    let moduleWait = new Promise<void>((res, rej) => {
+    let prmsRes: (value: void) => void;
+    const moduleWait = new Promise<void>((res, _rej) => {
       prmsRes = res;
     });
 
@@ -125,16 +122,47 @@ worker.onmessage = function(e) {
 }`;
   }
 
-  public workerWrappers(self: any) {
-    const workerWrappers: any[] = [];
+  public workerWrappers(self: WorkerDefinition): WorkerPromiseGeneratorNamed[] {
+    const workerWrappers: WorkerPromiseGeneratorNamed[] = [];
     for (const worker of this._workers) {
-      const def = function (args = {}) {
+      const def: WorkerPromiseGeneratorNamed = function (args = {}) {
         let promiseResolve, promiseReject;
         const id = self.uuidv4();
-        const prms = new Promise<SharedArrayBuffer>((resolve, reject) => {
-          promiseResolve = resolve;
-          promiseReject = reject;
+        //@ts-ignore building object
+        const prms: WorkerPromise = new Promise<SharedArrayBuffer>(
+          (resolve, reject) => {
+            promiseResolve = resolve;
+            promiseReject = reject;
+          },
+        ).finally(() => {
+          for (let i = 0; i < prms.timerIds.length; i++) {
+            clearTimeout(prms.timerIds[i]);
+          }
+          prms.settledCount += 1;
         });
+
+        prms.resolve = promiseResolve as any;
+        prms.reject = promiseReject as any;
+        prms.timerIds = [];
+        prms.settledCount = 0;
+        prms.name = worker.WorkerName;
+        prms.wrapper = def;
+        prms.timeout = (delay: number) => {
+          const timerId = setTimeout(() => {
+            self.worker.postMessage({
+              name: `${worker.WorkerName}`,
+              id: id,
+              action: "TERM",
+            });
+
+            prms.reject(
+              new Error("Timeout has occured, aborting worker execution"),
+            );
+          }, delay);
+
+          prms.timerIds.push(timerId);
+        };
+
         self._executionMap[id] = {
           promise: prms,
           resolve: promiseResolve,
@@ -146,10 +174,10 @@ worker.onmessage = function(e) {
           buffer: self.bufferMap[`${worker.WorkerName}`],
           args,
         });
-        return prms;
+
+        return prms as WorkerPromise;
       };
 
-      //@ts-ignore
       def._name = worker.WorkerName;
       workerWrappers.push(def);
     }
@@ -205,7 +233,8 @@ self['worker'] = worker;
     return root;
   }
 
-  private _genWebWorker(objUrl: URL): any {
+  private _genWebWorker(objUrl: string): any {
+    //@ts-ignore deno module true
     const worker = new Worker(objUrl, { deno: true, type: "module" });
 
     return worker;
