@@ -1,6 +1,7 @@
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 import { WorkerDefinition } from "./mod.ts";
-import { WorkerInstance } from "./types.ts";
+import { buildPromiseExtension } from "./PromiseExtension.ts";
+
 import {
   WorkerPromiseGenerator,
   WorkerPromiseGeneratorNamed,
@@ -126,48 +127,19 @@ worker.onmessage = function(e) {
     const workerWrappers: WorkerPromiseGeneratorNamed[] = [];
     for (const worker of this._workers) {
       const def: WorkerPromiseGeneratorNamed = function (args = {}) {
-        let promiseResolve, promiseReject;
         const id = self.uuidv4();
-        //@ts-ignore building object
-        const prms: WorkerPromise = new Promise<SharedArrayBuffer>(
-          (resolve, reject) => {
-            promiseResolve = resolve;
-            promiseReject = reject;
-          },
-        ).finally(() => {
-          for (let i = 0; i < prms.timerIds.length; i++) {
-            clearTimeout(prms.timerIds[i]);
-          }
-          prms.settledCount += 1;
-        });
-
-        prms.resolve = promiseResolve as any;
-        prms.reject = promiseReject as any;
-        prms.timerIds = [];
-        prms.settledCount = 0;
-        prms.name = worker.WorkerName;
-        prms.wrapper = def;
-        prms.timeout = (delay: number) => {
-          const timerId = setTimeout(() => {
-            self.worker.postMessage({
-              name: `${worker.WorkerName}`,
-              id: id,
-              action: "TERM",
-            });
-
-            prms.reject(
-              new Error("Timeout has occured, aborting worker execution"),
-            );
-          }, delay);
-
-          prms.timerIds.push(timerId);
-        };
-
+        const prms: WorkerPromise = buildPromiseExtension(
+          id,
+          worker,
+          def,
+          self,
+        );
         self._executionMap[id] = {
           promise: prms,
-          resolve: promiseResolve,
-          reject: promiseReject,
+          resolve: prms.resolve,
+          reject: prms.reject,
         };
+
         self.worker.postMessage({
           name: `${worker.WorkerName}`,
           id: id,
