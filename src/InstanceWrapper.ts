@@ -76,7 +76,7 @@ export class WorkerDefinition {
    * @returns {SharedArrayBuffer}
    */
   public execute(
-    name: keyof this,
+    name: Exclude<keyof this, keyof WorkerDefinition>,
     args: Record<string, any> = {},
   ): WorkerPromise {
     return this.execMap[name as unknown as string](args);
