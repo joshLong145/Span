@@ -124,5 +124,4 @@ try {
   console.error("handling the await with a try catch ", e);
 }
 
-console.log(workerPrms.settledCount);
-//example.terminateWorker();
+example.terminateWorker();
