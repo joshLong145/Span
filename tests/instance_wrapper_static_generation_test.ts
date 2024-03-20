@@ -60,6 +60,13 @@ Deno.test("Generated bridge should load functions into global", async () => {
 
   assertExists(self["test.bar"]);
   await self["foo"]({ hey: "wow" });
-  await self["test.foo"]({ foo: "bar" });
+  const prms = self["test.foo"]({ foo: "bar" });
+  await prms;
+
+  assertExists(prms.timeout);
+  assertExists(prms.resolve);
+  assertExists(prms.reject);
+  assertExists(prms.timerIds);
+
   self["worker"].terminate();
 });

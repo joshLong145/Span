@@ -158,22 +158,22 @@ worker.onmessage = function(e) {
   }
 
   private _workerWrappers(): string {
-    let root = `const ${this._namespace} = {`;
+    let root = `
+const ${this._namespace} = {
+
+`;
 
     for (const worker of this._workers) {
       root += `
-"${worker.WorkerName}": async function ${worker.WorkerName}(args) {
-    let promiseResolve, promiseReject;
+"${worker.WorkerName}": function ${worker.WorkerName}(args) {
     const id = uuidv4()
-    const prms = new Promise((resolve, reject) => {
-        promiseResolve = resolve
-        promiseReject = reject
-    });
+    const prms = buildPromiseExtension(id, {_name: "${worker.WorkerName}"}, ${this._namespace}["${worker.WorkerName}"], { worker } );
     _executionMap[id] = {
         promise: prms,
-        resolve: promiseResolve,
-        reject: promiseReject,
-    }
+        resolve: prms.resolve,
+        reject: prms.reject,
+    };
+
     worker.postMessage({
         name: "${worker.WorkerName}",
         id: id,
@@ -194,14 +194,13 @@ for (const key of Object.keys(${this._namespace ?? "span"})) {
   self["${this._namespace ?? "span"}." + key] = ${
       this._namespace ?? "span"
     }[key];
-  console.log("bootstrapping methods to global namespace:", self["${
-      this._namespace ?? "span"
-    }." + key]);
   self[key] = ${this._namespace ?? "span"}[key];
   
 }
 self['worker'] = worker;
 `;
+
+    root += `\n` + buildPromiseExtension.toString();
     return root;
   }
 

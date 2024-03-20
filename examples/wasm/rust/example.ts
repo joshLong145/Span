@@ -10,9 +10,12 @@ class Example extends WorkerDefinition {
 
   test2 = (buffer: SharedArrayBuffer, _args: Record<string, any>) => {
     let arr = new Int8Array(buffer);
-    arr[0] += 1;
     //@ts-ignore
-    self.greet();
+    let val = self.getValue();
+    arr[0] = val;
+
+    //@ts-ignore
+    self.create_doc();
     return arr.buffer;
   };
 }
