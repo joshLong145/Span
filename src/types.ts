@@ -50,7 +50,7 @@ type KeepCallable<V, R = V, N = never> = V extends (...args: any) => any ? R
   : N;
 
 type BaseFunctionTypes<T> = (
-  name: keyof T,
+  name: Exclude<keyof T, keyof WorkerDefinition>,
   args?: Record<string, any>,
 ) => Promise<SharedArrayBuffer> | void;
 
