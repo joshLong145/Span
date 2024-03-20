@@ -72,7 +72,9 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
       //@ts-ignore need to add types
       workerPrms.timeout(1_000);
-      return workerPrms;
+      return workerPrms.finally(() => {
+        assertEquals(workerPrms.settledCount, 1);
+      });
     },
     Error,
     "Timeout has occured, aborting worker execution",
