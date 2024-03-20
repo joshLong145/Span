@@ -1,6 +1,7 @@
 import {
   assertEquals,
-  assertExists,
+  assertIsError,
+  assertRejects,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 
@@ -24,7 +25,6 @@ class TestExample extends WorkerDefinition {
     args: Record<string, any>,
   ): SharedArrayBuffer => {
     const _arr = new Uint8Array(buffer)[0] = args.value;
-
     return buffer;
   };
 
@@ -35,10 +35,17 @@ class TestExample extends WorkerDefinition {
     const prms: Promise<void> = new Promise((res, _rej) => {
       const a = 2 + 2;
       console.log("a value is ", a);
-      console.log("deno api", Deno);
       res();
     });
     await prms;
+    return buffer;
+  };
+
+  testUndefinedValueAccess = (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    while (true) {}
     return buffer;
   };
 }
@@ -58,6 +65,18 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
   });
 
   await inst.execute("testAsync");
+
+  await assertRejects(
+    () => {
+      const workerPrms = inst.execute("testUndefinedValueAccess");
+
+      //@ts-ignore need to add types
+      workerPrms.timeout(1_000);
+      return workerPrms;
+    },
+    Error,
+    "Timeout has occured, aborting worker execution",
+  );
 
   inst.terminateWorker();
 });

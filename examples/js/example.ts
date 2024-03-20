@@ -61,6 +61,22 @@ class Example extends WorkerDefinition {
 
     return buffer;
   };
+
+  undefinedExecution = (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): Promise<SharedArrayBuffer> => {
+    let id = 0;
+    return new Promise<SharedArrayBuffer>((res, _rej) => {
+      id = setTimeout(() => {
+        res(buffer);
+      }, 10_000);
+    }).finally(() => {
+      console.log("running cleanup", id);
+      clearTimeout(id);
+      return buffer;
+    });
+  };
 }
 
 const example: Example = new Example();
@@ -81,12 +97,6 @@ await example.execute("addOne", { name: "foo" }).then(
     console.log("add one result: ", new Int32Array(buf));
   },
 );
-await example.execute("addOne", { name: "foo" }).then(
-  (buf: SharedArrayBuffer) => {
-    console.log("add one result ", new Int32Array(buf)[0]);
-  },
-);
-
 await example.execute("getKeyPair");
 
 await example.execute("fib", { count: 46 }).then(
@@ -96,6 +106,23 @@ await example.execute("fib", { count: 46 }).then(
   },
 );
 await example.execute("getGpuAdapter");
-await example.execute("getGpuAdapter");
 
-example.terminateWorker();
+const workerPrms = example.execute("undefinedExecution");
+
+// handle a rejection of the promise due to a timeout
+workerPrms.catch((e) => {
+  console.error("We can still handle the error with a catch statement ", e);
+});
+
+// timeout the above execution call in 1 second
+workerPrms.timeout(1_000);
+
+// you can also use await with a try catch to manage the timeout
+try {
+  await workerPrms;
+} catch (e) {
+  console.error("handling the await with a try catch ", e);
+}
+
+console.log(workerPrms.settledCount);
+//example.terminateWorker();
