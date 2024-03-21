@@ -13,9 +13,6 @@ class Example extends WorkerDefinition {
     //@ts-ignore
     let val = self.getValue();
     arr[0] = val;
-
-    //@ts-ignore
-    self.create_doc();
     return arr.buffer;
   };
 }
@@ -43,4 +40,5 @@ await wrapper.start();
 await example.execute("test2").then((buffer: SharedArrayBuffer) => {
   console.log(new Uint8Array(buffer)[0]);
 });
+
 example.terminateWorker();

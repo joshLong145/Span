@@ -34,7 +34,6 @@ class TestExample extends WorkerDefinition {
   ): Promise<SharedArrayBuffer> => {
     const prms: Promise<void> = new Promise((res, _rej) => {
       const a = 2 + 2;
-      console.log("a value is ", a);
       res();
     });
     await prms;
