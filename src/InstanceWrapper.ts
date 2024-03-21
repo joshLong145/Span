@@ -86,7 +86,7 @@ export class WorkerDefinition {
    * Return the promise controlling a specific method within the worker
    */
   public get(
-    name: keyof this,
+    name: Exclude<keyof this, keyof WorkerDefinition>,
   ): void | Promise<SharedArrayBuffer> {
     return this.execMap[name as unknown as string] as any;
   }
