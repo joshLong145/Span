@@ -37,7 +37,6 @@ class GoTestExample extends WorkerDefinition {
   ): Promise<SharedArrayBuffer> => {
     const prms: Promise<void> = new Promise((res, _rej) => {
       const a = 2 + 2;
-      console.log("a value is ", a);
       res();
     });
     await prms;
@@ -51,14 +50,15 @@ class RustTestExample extends WorkerDefinition {
   }
 
   test2 = (buffer: SharedArrayBuffer, args: Record<string, any>) => {
-    console.log(args.dom);
     const arr = new Int8Array(buffer);
     arr[0] += 1;
     //@ts-ignore was module function
     self.greet();
+
     //@ts-ignore wasm module function
     const val = self.getValue();
-    console.log(val);
+
+    arr[0] += 1;
     return arr.buffer;
   };
 }
@@ -166,7 +166,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
   await wrapper.start();
   await example.execute("test2").then(
     (buffer: SharedArrayBuffer) => {
-      console.log(new Uint8Array(buffer)[0]);
+      assertExists(new Uint32Array(buffer)[0]);
     },
   );
   example.terminateWorker();

@@ -22,11 +22,11 @@ class TestExample extends WorkerDefinition {
 
   foo = (
     buffer: SharedArrayBuffer,
-    module: Record<string, any>,
+    _args: Record<string, any>,
   ): ArrayBuffer => {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
-    console.log("this is foo", module);
+
     return buffer;
   };
 
