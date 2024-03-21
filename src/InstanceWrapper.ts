@@ -1,3 +1,4 @@
+import { WorkerPromise } from "./types.ts";
 import {
   DiskIOProvider,
   InstanceConfiguration,
@@ -35,8 +36,14 @@ import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
 export class WorkerDefinition {
   public execMap: Record<
     string,
-    (args: Record<string, any>) => Promise<SharedArrayBuffer>
+    (args: Record<string, any>) => WorkerPromise
   > = {};
+
+  /** */
+  public _executionMap: Record<string, any> = {};
+
+  /** */
+  public bufferMap: Record<string, SharedArrayBuffer> = {};
 
   /**
    * worker instance, can be stopped by calling terminateWorker
@@ -47,6 +54,20 @@ export class WorkerDefinition {
   constructor() {}
 
   /**
+   * @returns
+   */
+  public uuidv4() {
+    //@ts-ignore
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
+      /[018]/g,
+      (c: number) =>
+        (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(
+          16,
+        ),
+    );
+  }
+
+  /**
    * Run implemented methods from within the worker instance
    *
    * example: await workerDefintion.execute('foo', {bar: true});
@@ -55,10 +76,19 @@ export class WorkerDefinition {
    * @returns {SharedArrayBuffer}
    */
   public execute(
-    name: keyof this,
+    name: Exclude<keyof this, keyof WorkerDefinition>,
     args: Record<string, any> = {},
-  ): Promise<SharedArrayBuffer> {
+  ): WorkerPromise {
     return this.execMap[name as unknown as string](args);
+  }
+
+  /**
+   * Return the promise controlling a specific method within the worker
+   */
+  public get(
+    name: keyof this,
+  ): void | Promise<SharedArrayBuffer> {
+    return this.execMap[name as unknown as string] as any;
   }
 
   /**
@@ -108,7 +138,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
   private _config: InstanceConfiguration;
   private _instance: WorkerInstance<T>;
   private _wm: WorkerManager | undefined;
-  private _wb: WorkerBridge<T> | undefined;
+  private _wb: WorkerBridge | undefined;
   private _workerString = "";
 
   constructor(instance: WorkerInstance<T>, config: InstanceConfiguration) {
@@ -122,10 +152,13 @@ export class InstanceWrapper<T extends WorkerDefinition> {
    * Current only supports the `onmessage` handler. but object may be accesed as the `worker` property
    */
   public async start(): Promise<void> {
-    this?._wb?.bufferMap(this._instance);
-    const ww = this?._wb?.workerWrappers(this._instance) ?? [];
+    this?._wb?.bufferMap(this._instance as WorkerDefinition);
+    const ww = this?._wb?.workerWrappers(this._instance as WorkerDefinition);
+    if (!ww) {
+      throw new Error("unable to process worker definition");
+    }
     for (const w of ww) {
-      (this._instance as WorkerDefinition).execMap[(w as any)._name] = w;
+      (this._instance as WorkerDefinition).execMap[w._name] = w;
     }
 
     this._workerString = this._workerString + "\n" +
@@ -190,9 +223,10 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       Object.getPrototypeOf(this._instance),
     ) as [keyof T];
     const baseKeys = Object.keys(this._instance) as [keyof T];
-    console.log("base keys", baseKeys, "instance prototype keys", protoKeys);
     const allKeys = baseKeys.concat(protoKeys).filter((key) => {
-      return key !== "constructor" && key !== "execMap" && key !== "worker" &&
+      return key !== "constructor" && key !== "execMap" &&
+        key !== "bufferMap" &&
+        key !== "_executionMap" && key !== "worker" &&
         key !== "ModulePath" && key !== "workerString";
     });
     const wrps: WorkerWrapper[] = [];

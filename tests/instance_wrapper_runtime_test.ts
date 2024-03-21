@@ -1,6 +1,7 @@
 import {
   assertEquals,
-  assertExists,
+  assertIsError,
+  assertRejects,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 
@@ -24,7 +25,6 @@ class TestExample extends WorkerDefinition {
     args: Record<string, any>,
   ): SharedArrayBuffer => {
     const _arr = new Uint8Array(buffer)[0] = args.value;
-
     return buffer;
   };
 
@@ -35,10 +35,26 @@ class TestExample extends WorkerDefinition {
     const prms: Promise<void> = new Promise((res, _rej) => {
       const a = 2 + 2;
       console.log("a value is ", a);
-      console.log("deno api", Deno);
       res();
     });
     await prms;
+    return buffer;
+  };
+
+  testErrorCatch = (
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    //@ts-ignore testing error handling;
+    args.foo.bar();
+    return buffer;
+  };
+
+  testInfiniteLoop = (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    while (true) {}
     return buffer;
   };
 }
@@ -59,6 +75,20 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
   await inst.execute("testAsync");
 
+  await assertRejects(
+    () => {
+      const workerPrms = inst.execute("testInfiniteLoop");
+
+      //@ts-ignore need to add types
+      workerPrms.timeout(1_000);
+      return workerPrms.finally(() => {
+        assertEquals(workerPrms.settledCount, 1);
+      });
+    },
+    Error,
+    "Timeout has occured, aborting worker execution",
+  );
+
   inst.terminateWorker();
 });
 
@@ -71,5 +101,16 @@ Deno.test("Worker Wrapper manager should respect argument value in buffer when r
     assertEquals(new Uint32Array(buf)[0], 10);
   });
 
+  inst.terminateWorker();
+});
+
+Deno.test("Worker Wrapper Generated Promise should handle rejections", async () => {
+  const inst = new TestExample();
+  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+
+  await wrapper.start();
+  await inst.execute("testErrorCatch").catch((err) => {
+    assertIsError(err);
+  });
   inst.terminateWorker();
 });

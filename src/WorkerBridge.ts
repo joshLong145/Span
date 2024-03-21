@@ -1,6 +1,9 @@
-//@ts-nocheck working out type issues
-
 import { WorkerWrapper } from "./WorkerWrapper.ts";
+import { WorkerDefinition } from "./mod.ts";
+import { buildPromiseExtension } from "./PromiseExtension.ts";
+
+import { WorkerPromiseGeneratorNamed } from "./types.ts";
+import { WorkerPromise } from "./types.ts";
 
 export interface BridgeConfiguration {
   namespace: string;
@@ -8,21 +11,20 @@ export interface BridgeConfiguration {
   modulePath: string;
 }
 
-export class WorkerBridge<T> {
+export class WorkerBridge {
   private _workers;
   private _namespace;
 
   constructor(config: BridgeConfiguration) {
     this._workers = config.workers;
     this._namespace = config.namespace;
-    this._modulePath = config.modulePath;
   }
 
-  public bufferMap(self: any): void {
-    self.bufferMap = {};
+  public bufferMap(self: WorkerDefinition): void {
     for (const worker of this._workers) {
       // this should be a config option
-      self.bufferMap[`${worker.WorkerName}`] = new SharedArrayBuffer(1024);
+      (self as WorkerDefinition).bufferMap[`${worker.WorkerName}`] =
+        new SharedArrayBuffer(1024);
     }
   }
 
@@ -47,17 +49,10 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
    * @param self
    * @param bridgeStr
    */
-  public async workerBootstrap(self: T, bridgeStr: string): Promise<void> {
-    self.uuidv4 = () => {
-      return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
-        /[018]/g,
-        (c) =>
-          (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(
-            16,
-          ),
-      );
-    };
-
+  public async workerBootstrap(
+    self: WorkerDefinition,
+    bridgeStr: string,
+  ): Promise<void> {
     self._executionMap = {};
     const workerBuff = bridgeStr;
     const blob = new Blob(
@@ -66,8 +61,8 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
     );
     const objUrl = URL.createObjectURL(blob);
 
-    let prmsRes;
-    let moduleWait = new Promise<void>((res, rej) => {
+    let prmsRes: (value: void) => void;
+    const moduleWait = new Promise<void>((res, _rej) => {
       prmsRes = res;
     });
 
@@ -80,7 +75,14 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
         return;
       }
       const context = self._executionMap[e.data.id];
-      context.promise && context.resolve(e.data.buffer);
+
+      if (e.data.error) {
+        context.promise &&
+          context.reject(new Error("Error occured in worker: ", e.data.error));
+      } else {
+        context.promise && context.resolve(e.data.buffer);
+      }
+
       delete self._executionMap[e.data.id];
     };
 
@@ -119,37 +121,45 @@ worker.onmessage = function(e) {
   if(!_executionMap[e.data.id]) {
       return
   }
-  const context = _executionMap[e.data.id]
-  context.promise && context.resolve(e.data.res)
+  const context = _executionMap[e.data.id];
+  if (e.data.error) {
+    context.promise &&
+      context.reject(new Error("Error occured in worker: ", e.data.error));
+  } else {
+    context.promise && context.resolve(e.data.buffer);
+  }
+
   delete _executionMap[e.data.id]
 }`;
   }
 
-  public workerWrappers(self: any) {
-    const workerWrappers: any[] = [];
+  public workerWrappers(self: WorkerDefinition): WorkerPromiseGeneratorNamed[] {
+    const workerWrappers: WorkerPromiseGeneratorNamed[] = [];
     for (const worker of this._workers) {
-      const def = function (args = {}) {
-        let promiseResolve, promiseReject;
+      const def: WorkerPromiseGeneratorNamed = function (args = {}) {
         const id = self.uuidv4();
-        const prms = new Promise<SharedArrayBuffer>((resolve, reject) => {
-          promiseResolve = resolve;
-          promiseReject = reject;
-        });
+        const prms: WorkerPromise = buildPromiseExtension(
+          id,
+          worker,
+          def,
+          self,
+        );
         self._executionMap[id] = {
           promise: prms,
-          resolve: promiseResolve,
-          reject: promiseReject,
+          resolve: prms.resolve,
+          reject: prms.reject,
         };
+
         self.worker.postMessage({
           name: `${worker.WorkerName}`,
           id: id,
           buffer: self.bufferMap[`${worker.WorkerName}`],
           args,
         });
-        return prms;
+
+        return prms as WorkerPromise;
       };
 
-      //@ts-ignore
       def._name = worker.WorkerName;
       workerWrappers.push(def);
     }
@@ -158,22 +168,22 @@ worker.onmessage = function(e) {
   }
 
   private _workerWrappers(): string {
-    let root = `const ${this._namespace} = {`;
+    let root = `
+const ${this._namespace} = {
+
+`;
 
     for (const worker of this._workers) {
       root += `
-"${worker.WorkerName}": async function ${worker.WorkerName}(args) {
-    let promiseResolve, promiseReject;
+"${worker.WorkerName}": function ${worker.WorkerName}(args) {
     const id = uuidv4()
-    const prms = new Promise((resolve, reject) => {
-        promiseResolve = resolve
-        promiseReject = reject
-    });
+    const prms = buildPromiseExtension(id, {_name: "${worker.WorkerName}"}, ${this._namespace}["${worker.WorkerName}"], { worker } );
     _executionMap[id] = {
         promise: prms,
-        resolve: promiseResolve,
-        reject: promiseReject,
-    }
+        resolve: prms.resolve,
+        reject: prms.reject,
+    };
+
     worker.postMessage({
         name: "${worker.WorkerName}",
         id: id,
@@ -194,18 +204,18 @@ for (const key of Object.keys(${this._namespace ?? "span"})) {
   self["${this._namespace ?? "span"}." + key] = ${
       this._namespace ?? "span"
     }[key];
-  console.log("bootstrapping methods to global namespace:", self["${
-      this._namespace ?? "span"
-    }." + key]);
   self[key] = ${this._namespace ?? "span"}[key];
   
 }
 self['worker'] = worker;
 `;
+
+    root += `\n` + buildPromiseExtension.toString();
     return root;
   }
 
-  private _genWebWorker(objUrl: URL): any {
+  private _genWebWorker(objUrl: string): any {
+    //@ts-ignore deno module true
     const worker = new Worker(objUrl, { deno: true, type: "module" });
 
     return worker;
