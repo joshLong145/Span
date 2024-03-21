@@ -51,7 +51,19 @@ self.setInterval(async () => {
     }.workerState,
                 res: retVal
               });
-              
+              delete tasks[task.id];
+            }).catch((err) => {
+              reject();
+              postMessage({
+                name: task.name,
+                buffer: task.buffer,
+                id: task.id,
+                error: err.toString(),
+                state: ${
+      this._namespace != "" ? this._namespace : "span"
+    }.workerState,
+              });
+              delete tasks[task.id];
             });
           } else {
             postMessage({
@@ -65,15 +77,16 @@ self.setInterval(async () => {
           });
           }
         } catch(e) {
-          console.error('Error while executing task. Error trace:' + e.message);
           postMessage({
             name: task.name,
             buffer: task.buffer,
             id: task.id,
+            error: e.toString(),
             state: ${
       this._namespace != "" ? this._namespace : "span"
     }.workerState
-          });                  
+          });
+          delete tasks[task.id];                
         }
       });
 

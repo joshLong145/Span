@@ -2,10 +2,7 @@ import { WorkerWrapper } from "./WorkerWrapper.ts";
 import { WorkerDefinition } from "./mod.ts";
 import { buildPromiseExtension } from "./PromiseExtension.ts";
 
-import {
-  WorkerPromiseGenerator,
-  WorkerPromiseGeneratorNamed,
-} from "./types.ts";
+import { WorkerPromiseGeneratorNamed } from "./types.ts";
 import { WorkerPromise } from "./types.ts";
 
 export interface BridgeConfiguration {
@@ -78,7 +75,14 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
         return;
       }
       const context = self._executionMap[e.data.id];
-      context.promise && context.resolve(e.data.buffer);
+
+      if (e.data.error) {
+        context.promise &&
+          context.reject(new Error("Error occured in worker: ", e.data.error));
+      } else {
+        context.promise && context.resolve(e.data.buffer);
+      }
+
       delete self._executionMap[e.data.id];
     };
 
@@ -117,8 +121,14 @@ worker.onmessage = function(e) {
   if(!_executionMap[e.data.id]) {
       return
   }
-  const context = _executionMap[e.data.id]
-  context.promise && context.resolve(e.data.res)
+  const context = _executionMap[e.data.id];
+  if (e.data.error) {
+    context.promise &&
+      context.reject(new Error("Error occured in worker: ", e.data.error));
+  } else {
+    context.promise && context.resolve(e.data.buffer);
+  }
+
   delete _executionMap[e.data.id]
 }`;
   }

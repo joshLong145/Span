@@ -41,7 +41,16 @@ class TestExample extends WorkerDefinition {
     return buffer;
   };
 
-  testUndefinedValueAccess = (
+  testErrorCatch = (
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    //@ts-ignore testing error handling;
+    args.foo.bar();
+    return buffer;
+  };
+
+  testInfiniteLoop = (
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
   ): SharedArrayBuffer => {
@@ -68,7 +77,7 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
   await assertRejects(
     () => {
-      const workerPrms = inst.execute("testUndefinedValueAccess");
+      const workerPrms = inst.execute("testInfiniteLoop");
 
       //@ts-ignore need to add types
       workerPrms.timeout(1_000);
@@ -92,5 +101,16 @@ Deno.test("Worker Wrapper manager should respect argument value in buffer when r
     assertEquals(new Uint32Array(buf)[0], 10);
   });
 
+  inst.terminateWorker();
+});
+
+Deno.test("Worker Wrapper Generated Promise should handle rejections", async () => {
+  const inst = new TestExample();
+  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+
+  await wrapper.start();
+  await inst.execute("testErrorCatch").catch((err) => {
+    assertIsError(err);
+  });
   inst.terminateWorker();
 });

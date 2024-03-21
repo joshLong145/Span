@@ -1,6 +1,10 @@
 //@ts-nocheck
 
-import { assertExists } from "https://deno.land/std@0.210.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertExists,
+  assertRejects,
+} from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
@@ -31,6 +35,23 @@ class TestExample extends WorkerDefinition {
     args: Record<string, any>,
   ): SharedArrayBuffer => {
     const _arr = new Uint8Array(buffer)[0] = args.value;
+    return buffer;
+  };
+
+  testErrorCatch = (
+    buffer: SharedArrayBuffer,
+    args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    //@ts-ignore testing error handling;
+    args.foo.bar();
+    return buffer;
+  };
+
+  testInfiniteLoop = (
+    buffer: SharedArrayBuffer,
+    _args: Record<string, any>,
+  ): SharedArrayBuffer => {
+    while (true) {}
     return buffer;
   };
 }
@@ -67,6 +88,18 @@ Deno.test("Generated bridge should load functions into global", async () => {
   assertExists(prms.resolve);
   assertExists(prms.reject);
   assertExists(prms.timerIds);
+
+  await assertRejects(
+    () => {
+      const workerPrms = self["testInfiniteLoop"]();
+      workerPrms.timeout(1_000);
+      return workerPrms.finally(() => {
+        assertEquals(workerPrms.settledCount, 1);
+      });
+    },
+    Error,
+    "Timeout has occured, aborting worker execution",
+  );
 
   self["worker"].terminate();
 });
