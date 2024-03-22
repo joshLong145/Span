@@ -12,6 +12,6 @@
     "./lib/*.js"
   ],
   "name": "@joshlong145/span",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "exports": "./src/mod.ts"
 }
