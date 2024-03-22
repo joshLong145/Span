@@ -19,8 +19,8 @@ class RustTestExample extends WorkerDefinition {
     //@ts-ignore
     self.greet();
     //@ts-ignore
-    let val = self.getValue();
-    console.log(val);
+    let _val = self.getValue();
+
     return arr.buffer;
   };
 
@@ -29,8 +29,7 @@ class RustTestExample extends WorkerDefinition {
     _args: Record<string, any>,
   ): Promise<SharedArrayBuffer> => {
     const prms: Promise<void> = new Promise((res, _rej) => {
-      const a = 2 + 2;
-      console.log("a value is a", a);
+      const _a = 2 + 2;
       res();
     });
     await prms;

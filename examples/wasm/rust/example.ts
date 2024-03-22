@@ -10,9 +10,9 @@ class Example extends WorkerDefinition {
 
   test2 = (buffer: SharedArrayBuffer, _args: Record<string, any>) => {
     let arr = new Int8Array(buffer);
-    arr[0] += 1;
     //@ts-ignore
-    self.greet();
+    let val = self.getValue();
+    arr[0] = val;
     return arr.buffer;
   };
 }
@@ -40,4 +40,5 @@ await wrapper.start();
 await example.execute("test2").then((buffer: SharedArrayBuffer) => {
   console.log(new Uint8Array(buffer)[0]);
 });
+
 example.terminateWorker();

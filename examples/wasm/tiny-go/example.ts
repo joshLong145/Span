@@ -66,19 +66,9 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 
 wrapper.start();
 
-await example.execute("test1").then((buf: SharedArrayBuffer) => {
-  console.log("hello", new Int32Array(buf));
-});
+await example.execute("test1");
 await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  let arr = new Int32Array(buf);
-  console.log("hello1", arr[0]);
-});
-
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  console.log("hello2", new Int32Array(buf)[0]);
-});
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  console.log("hello3", new Int32Array(buf)[0]);
+  console.log("first value in buffer ", new Int32Array(buf)[0]);
 });
 
 example.terminateWorker();
@@ -86,13 +76,8 @@ example.terminateWorker();
 await wrapper.restart();
 console.log("restarting web worker");
 
-await example.execute("test1").then((buf: SharedArrayBuffer) => {
-  console.log("hello", new Int32Array(buf));
-});
-
 await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  let arr = new Int32Array(buf);
-  console.log("hello1", new Int32Array(buf)[0]);
+  console.log("first value in buffer ", new Int32Array(buf)[0]);
 });
 
 example.terminateWorker();
