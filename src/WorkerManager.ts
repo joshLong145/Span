@@ -20,19 +20,27 @@ export class WorkerManager {
 
   public CreateOnMessageHandler(): string {
     return `
-const execData = [];
-const tasks = {};
+${this._namespace != "" ? this._namespace : "span"}.execData = [];
+${this._namespace != "" ? this._namespace : "span"}.tasks = {};
 self.setInterval(async () => {
-  if (execData.length > 0 && ${
+  if (${
+      this._namespace != "" ? this._namespace : "span"
+    }.execData.length > 0 && ${
       this._namespace != "" ? this._namespace : "span"
     }.workerState === "READY") {
-    const task = execData.shift();
+    const task = ${
+      this._namespace != "" ? this._namespace : "span"
+    }.execData.shift();
     if (task.action === 'TERM') {
-      tasks[task.id].reject();
+      ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id].reject();
       delete tasks[task.id];
     } else {
       let res, rej;
-      tasks[task.id] = new Promise<void>((resolve, reject) => {
+      ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id] = new Promise<void>((resolve, reject) => {
         res = resolve;
         rej = reject;
         try {
@@ -51,7 +59,6 @@ self.setInterval(async () => {
     }.workerState,
                 res: retVal
               });
-              delete tasks[task.id];
             }).catch((err) => {
               reject();
               postMessage({
@@ -63,7 +70,10 @@ self.setInterval(async () => {
       this._namespace != "" ? this._namespace : "span"
     }.workerState,
               });
-              delete tasks[task.id];
+            }).finally(() => {
+              delete ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id];
             });
           } else {
             postMessage({
@@ -74,7 +84,10 @@ self.setInterval(async () => {
       this._namespace != "" ? this._namespace : "span"
     }.workerState,
               res
-          });
+            });
+            delete ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id];
           }
         } catch(e) {
           postMessage({
@@ -86,13 +99,21 @@ self.setInterval(async () => {
       this._namespace != "" ? this._namespace : "span"
     }.workerState
           });
-          delete tasks[task.id];                
+          delete ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id];                
         }
       });
 
-      tasks[task.id].resolve = res;
-      tasks[task.id].reject = rej;
-      tasks[task.id].catch((err) => {
+      ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id].resolve = res;
+      ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id].reject = rej;
+      ${
+      this._namespace != "" ? this._namespace : "span"
+    }.tasks[task.id].catch((err) => {
         err && postMessage({
           name: task.name,
           buffer: task.buffer,
@@ -105,7 +126,7 @@ self.setInterval(async () => {
 }, 1);
 
 self.onmessage = (e) => {
-  execData.push(e.data);
+  ${this._namespace != "" ? this._namespace : "span"}.execData.push(e.data);
 };
 `;
   }
