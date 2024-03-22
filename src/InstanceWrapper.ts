@@ -54,9 +54,9 @@ export class WorkerDefinition {
   constructor() {}
 
   /**
-   * @returns
+   *
    */
-  public uuidv4() {
+  public uuidv4(): string {
     //@ts-ignore
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
       /[018]/g,
