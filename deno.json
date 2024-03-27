@@ -9,7 +9,9 @@
   },
   "exclude": [
     "./examples/*.ts",
-    "./lib/*.js"
+    "./lib/*.js",
+    "./public/*.js",
+    "./scripts/*.ts"
   ],
   "name": "@joshlong145/span",
   "version": "0.7.0",
