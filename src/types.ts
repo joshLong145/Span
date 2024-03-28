@@ -1,4 +1,5 @@
 import { WorkerDefinition } from "./InstanceWrapper.ts";
+import { Pool } from "./Pool.ts";
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export interface BridgeConfiguration {
@@ -74,11 +75,14 @@ export declare type WorkerPromise = Promise<SharedArrayBuffer> & {
   resolve: (value: SharedArrayBuffer | PromiseLike<SharedArrayBuffer>) => void;
   reject: (reason: any) => void;
   timeout: (delay: number) => void;
+  pool: Pool;
   wrapper: WorkerPromiseGeneratorNamed;
-
+  buffer: SharedArrayBuffer;
+  args: any;
   timerIds: number[];
   settledCount: number;
   name: string;
+  id: string;
 };
 export declare type WorkerPromiseGenerator = (
   args: Record<string, any>,

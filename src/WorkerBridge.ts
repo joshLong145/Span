@@ -1,9 +1,11 @@
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 import { WorkerDefinition } from "./mod.ts";
 import { buildPromiseExtension } from "./PromiseExtension.ts";
+import { Pool } from "./Pool.ts";
 
 import { WorkerPromiseGeneratorNamed } from "./types.ts";
 import { WorkerPromise } from "./types.ts";
+import { WorkerHandler } from "./Worker.ts";
 
 export interface BridgeConfiguration {
   namespace: string;
@@ -17,7 +19,7 @@ export class WorkerBridge {
 
   constructor(config: BridgeConfiguration) {
     this._workers = config.workers;
-    this._namespace = config.namespace;
+    this._namespace = config.namespace ?? "span";
   }
 
   public bufferMap(self: WorkerDefinition): void {
@@ -53,109 +55,43 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
     self: WorkerDefinition,
     bridgeStr: string,
   ): Promise<void> {
-    self._executionMap = {};
-    const workerBuff = bridgeStr;
-    const blob = new Blob(
-      [workerBuff],
-      { type: "application/typescript" },
-    );
-    const objUrl = URL.createObjectURL(blob);
+    const pool = new Pool({ workerCount: 5 });
+    self.pool = pool;
 
-    let prmsRes: (value: void) => void;
-    const moduleWait = new Promise<void>((res, _rej) => {
-      prmsRes = res;
-    });
-
-    self.worker = this._genWebWorker(objUrl);
-    self.worker.onmessage = (e: MessageEvent<any>) => {
-      if (e.data.ready) {
-        prmsRes();
-      }
-      if (!self._executionMap[e.data.id]) {
-        return;
-      }
-      const context = self._executionMap[e.data.id];
-
-      if (e.data.error) {
-        context.promise &&
-          context.reject(new Error("Error occured in worker: ", e.data.error));
-      } else {
-        context.promise && context.resolve(e.data.buffer);
-      }
-
-      delete self._executionMap[e.data.id];
-    };
-
-    return moduleWait;
+    await pool.init(bridgeStr);
   }
 
   private _workerBootstrap(worker: string): string {
-    let workerBuff = new TextEncoder().encode(worker);
-    let workerArr = [];
+    const workerBuff = new TextEncoder().encode(worker);
+    const workerArr = [];
     for (let i = 0; i < workerBuff.length; i++) {
       workerArr[i] = workerBuff[i];
     }
 
     return `
-let workerStr = [${workerArr.toString()}]
-function uuidv4() {
-    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-    (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-    );
-}
-const _executionMap = {}
-let worker;
-let prmsRes;
-let moduleWait = new Promise((res, rej) => {
-  prmsRes = res;
-});
-
-const blob = new Blob([new TextDecoder().decode(new Uint8Array(workerStr))],{ type: "application/typescript" });
-const objUrl = URL.createObjectURL(blob);            
-worker = new Worker(objUrl, {type: "module"});
-
-worker.onmessage = function(e) {
-  if (e.data.ready) {
-    prmsRes();
-  }
-  if(!_executionMap[e.data.id]) {
-      return
-  }
-  const context = _executionMap[e.data.id];
-  if (e.data.error) {
-    context.promise &&
-      context.reject(new Error("Error occured in worker: ", e.data.error));
-  } else {
-    context.promise && context.resolve(e.data.buffer);
-  }
-
-  delete _executionMap[e.data.id]
-}`;
+${Pool.toString()}
+${WorkerHandler.toString()}
+let workerStr = [${workerArr.toString()}];         
+const pool = new Pool({workerCount: 5});
+await pool.init(new TextDecoder().decode(new Uint8Array(workerStr)));
+`;
   }
 
   public workerWrappers(self: WorkerDefinition): WorkerPromiseGeneratorNamed[] {
     const workerWrappers: WorkerPromiseGeneratorNamed[] = [];
     for (const worker of this._workers) {
       const def: WorkerPromiseGeneratorNamed = function (args = {}) {
-        const id = self.uuidv4();
+        const id = Pool.uuidv4();
         const prms: WorkerPromise = buildPromiseExtension(
-          id,
+          id as string,
           worker,
           def,
           self,
-        );
-        self._executionMap[id] = {
-          promise: prms,
-          resolve: prms.resolve,
-          reject: prms.reject,
-        };
-
-        self.worker.postMessage({
-          name: `${worker.WorkerName}`,
-          id: id,
-          buffer: self.bufferMap[`${worker.WorkerName}`],
+          self?.pool as Pool,
           args,
-        });
+        );
+
+        self.pool?.exec(prms);
 
         return prms as WorkerPromise;
       };
@@ -176,20 +112,9 @@ const ${this._namespace} = {
     for (const worker of this._workers) {
       root += `
 "${worker.WorkerName}": function ${worker.WorkerName}(args) {
-    const id = uuidv4()
-    const prms = buildPromiseExtension(id, {_name: "${worker.WorkerName}"}, ${this._namespace}["${worker.WorkerName}"], { worker } );
-    _executionMap[id] = {
-        promise: prms,
-        resolve: prms.resolve,
-        reject: prms.reject,
-    };
-
-    worker.postMessage({
-        name: "${worker.WorkerName}",
-        id: id,
-        buffer: _bufferMap["${worker.WorkerName}"],
-        args
-    })
+     const id = Pool.uuidv4();
+    const prms = buildPromiseExtension(id, {_name: "${worker.WorkerName}"}, ${this._namespace}["${worker.WorkerName}"], {bufferMap: _bufferMap}, pool, args);
+    pool.exec(prms);
     return prms;
   },\n
 `;
@@ -207,18 +132,11 @@ for (const key of Object.keys(${this._namespace ?? "span"})) {
   self[key] = ${this._namespace ?? "span"}[key];
   
 }
-self['worker'] = worker;
+self['pool'] = pool;
 `;
 
     root += `\n` + buildPromiseExtension.toString();
     return root;
-  }
-
-  private _genWebWorker(objUrl: string): any {
-    //@ts-ignore deno module true
-    const worker = new Worker(objUrl, { deno: true, type: "module" });
-
-    return worker;
   }
 
   public createBridge(worker: string): string {

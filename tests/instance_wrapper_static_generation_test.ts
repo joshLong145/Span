@@ -101,5 +101,5 @@ Deno.test("Generated bridge should load functions into global", async () => {
     "Timeout has occured, aborting worker execution",
   );
 
-  self["worker"].terminate();
+  self["pool"].terminate();
 });
