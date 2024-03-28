@@ -1,5 +1,7 @@
-name: Test Deno Module
-
+name: Test and Benchmark
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
 on:
   push:
     branches: [master]
@@ -11,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.39.1, 1.38.1]
+        deno-version: [1.39.1, 1.38.1, 1.41.3]
     steps:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
@@ -19,5 +21,17 @@ jobs:
         uses: denolib/setup-deno@v2
         with:
           deno-version: ${{ matrix.deno-version }}
-      - name: Test Deno Module
+      - name: Unit Testing
+        id: test
         run: deno task ok
+      - name: Benchmark
+        run: deno task bench
+      - name: Auto Comment
+        uses: bubkoo/auto-comment@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pullRequestOpened: >
+          BenchMark results
+          ```
+          ${steps.test}
+          ```
