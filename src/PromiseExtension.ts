@@ -1,3 +1,4 @@
+import { Pool } from "./Pool.ts";
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 import { WorkerDefinition } from "./mod.ts";
 import { WorkerPromise, WorkerPromiseGeneratorNamed } from "./types.ts";
@@ -7,6 +8,8 @@ export function buildPromiseExtension(
   wrapper: WorkerWrapper,
   generator: WorkerPromiseGeneratorNamed,
   self: WorkerDefinition,
+  pool: Pool,
+  args: any = {},
 ): WorkerPromise {
   let promiseResolve, promiseReject;
   //@ts-ignore building object
@@ -22,15 +25,26 @@ export function buildPromiseExtension(
     prms.settledCount += 1;
   });
 
+  prms.args = args;
   prms.resolve = promiseResolve as any;
   prms.reject = promiseReject as any;
   prms.timerIds = [];
   prms.settledCount = 0;
-  prms.name = name;
+  //@ts-ignore
+  prms.buffer = self.bufferMap[wrapper.WorkerName ?? wrapper._name];
+  prms.id = id;
+  // @ts-ignore
+  prms.name = wrapper.WorkerName ?? wrapper._name;
   prms.wrapper = generator;
+
   prms.timeout = (delay: number) => {
     const timerId = setTimeout(() => {
-      self.worker.postMessage({
+      const worker = self.pool?.findWorkerForId(id);
+      if (!worker) {
+        console.warn("could not find worker for task id: ", id);
+      }
+
+      worker?.worker.postMessage({
         name: `${wrapper.WorkerName}`,
         id: id,
         action: "TERM",
