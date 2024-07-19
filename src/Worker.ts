@@ -53,6 +53,6 @@ export class WorkerHandler {
   }
 
   public isReady(): boolean {
-    return this.state === "IDLE" || Object.keys(this._executionMap).length < 10;
+    return this.state === "IDLE" || Object.keys(this._executionMap).length < 1;
   }
 }

@@ -1,4 +1,4 @@
-import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
+import { InstanceWrapper, WorkerDefinition } from "../../src/mod.ts";
 
 class KeyGenerator extends WorkerDefinition {
   constructor() {
@@ -24,12 +24,12 @@ class KeyGenerator extends WorkerDefinition {
   };
 }
 
-Deno.bench("parallel key generation", async (b) => {
+async function parallelKeygenTest() {
   const example = new KeyGenerator();
-  const wrapper = new InstanceWrapper<KeyGenerator>(example, {});
+  const wrapper = new InstanceWrapper<KeyGenerator>(example, {workerCount: 5});
   await wrapper.start();
   // Only measure time of execution. we Init shouldnt count ;)
-  b.start();
+
   for (let i = 0; i < 5; i++) {
     example.execute("getKeyPair");
   }
@@ -37,14 +37,14 @@ Deno.bench("parallel key generation", async (b) => {
   while (
     example.pool?.getThreadStates().find((s) => s.tasks.length > 0)
   ) {
-    await new Promise((res) => setTimeout(res, 100));
+    await new Promise((res) => setTimeout(res, 1));
   }
-  b.end();
-
+  
   example.terminateWorker();
-});
+}
 
-Deno.bench("sync key generation", async () => {
+
+async function syncKeygenTest() {
   for (let i = 0; i < 5; i++) {
     await crypto.subtle.generateKey(
       {
@@ -57,4 +57,9 @@ Deno.bench("sync key generation", async () => {
       ["encrypt", "decrypt"],
     );
   }
-});
+}
+
+
+
+Deno.env.get("SPAN_HYPER_TEST") === "sync" && syncKeygenTest();
+Deno.env.get("SPAN_HYPER_TEST") === "parallel" && parallelKeygenTest();
