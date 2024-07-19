@@ -1,3 +1,4 @@
+import { Pool } from "./Pool.ts";
 import { WorkerPromise } from "./types.ts";
 import {
   DiskIOProvider,
@@ -40,32 +41,11 @@ export class WorkerDefinition {
   > = {};
 
   /** */
-  public _executionMap: Record<string, any> = {};
-
-  /** */
   public bufferMap: Record<string, SharedArrayBuffer> = {};
 
-  /**
-   * worker instance, can be stopped by calling terminateWorker
-   */
-  // deno-lint-ignore no-explicit-any
-  public worker: any | undefined = undefined;
+  public pool: Pool | undefined;
 
   constructor() {}
-
-  /**
-   *
-   */
-  public uuidv4(): string {
-    //@ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
-      /[018]/g,
-      (c: number) =>
-        (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(
-          16,
-        ),
-    );
-  }
 
   /**
    * Run implemented methods from within the worker instance
@@ -95,7 +75,13 @@ export class WorkerDefinition {
    * Calls terminate on the worker instace
    */
   public terminateWorker() {
-    this.worker?.terminate();
+    if (!this.pool) {
+      return;
+    }
+
+    for (let i = 0; i < this.pool.threads.length; i++) {
+      this.pool.threads[i].worker.terminate();
+    }
   }
 }
 
@@ -226,7 +212,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
     const allKeys = baseKeys.concat(protoKeys).filter((key) => {
       return key !== "constructor" && key !== "execMap" &&
         key !== "bufferMap" &&
-        key !== "_executionMap" && key !== "worker" &&
+        key !== "pool" && key !== "worker" &&
         key !== "ModulePath" && key !== "workerString";
     });
     const wrps: WorkerWrapper[] = [];

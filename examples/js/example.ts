@@ -48,7 +48,7 @@ class Example extends WorkerDefinition {
       ["encrypt", "decrypt"],
     );
 
-    console.log("generated key", keyPair);
+    console.log("generated key", _args);
     return buffer;
   };
 
@@ -56,7 +56,7 @@ class Example extends WorkerDefinition {
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
   ): Promise<SharedArrayBuffer> => {
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = {};
     console.log("gpu adapter", adapter);
 
     return buffer;
@@ -85,14 +85,13 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   {} as InstanceConfiguration,
 );
 
-wrapper.start();
+await wrapper.start();
 
-await example.execute("addOne", { name: "foo" }).then(
-  (buf: SharedArrayBuffer) => {
-    assertExists(buf);
-  },
-);
-await example.execute("getKeyPair");
+await example.execute("addOne", { name: "foo" });
+
+for (let i = 0; i < 48; i++) {
+  example.execute("getKeyPair", { num: i });
+}
 
 await example.execute("fib", { count: 46 });
 await example.execute("getGpuAdapter");
@@ -114,4 +113,7 @@ try {
   assertIsError(e);
 }
 
-example.terminateWorker();
+setInterval(() => {
+  console.log(example.pool?.getThreadStates());
+}, 500);
+//example.terminateWorker();

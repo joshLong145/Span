@@ -13,7 +13,6 @@ class RustTestExample extends WorkerDefinition {
   }
 
   test2 = (buffer: SharedArrayBuffer, args: Record<string, any>) => {
-    console.log(args.dom);
     let arr = new Int8Array(buffer);
     arr[0] += 1;
     //@ts-ignore
@@ -73,7 +72,7 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
   });
 
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-  await import(__dirname + "/../public/wasm/bridge.js").then(async (module) => {
+  await import(__dirname + "/../public/wasm/bridge.js").then(async () => {
     //@ts-ignore
     assertExists(self["test2"]);
     //@ts-ignore
@@ -85,5 +84,5 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
   });
 
   //@ts-ignore
-  self["worker"].terminate();
+  self["pool"].terminate();
 });
