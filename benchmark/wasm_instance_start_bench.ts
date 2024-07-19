@@ -1,12 +1,10 @@
-//@ts-nocheck
-
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
 
 class TestExample extends WorkerDefinition {
-  public constructor(modulePath: string) {
-    super(modulePath);
+  public constructor() {
+    super();
   }
 
   test2 = (
@@ -15,19 +13,19 @@ class TestExample extends WorkerDefinition {
   ): SharedArrayBuffer => {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
-
+    //@ts-ignore loaded from WASM
     self.primeGenerator();
-    return arr.buffer;
+    return buffer;
   };
 }
 
 Deno.bench("Wasm Worker Start Go Module loading", {
   group: "non imported initalization",
 }, async (_b) => {
-  const example: WorkerDefinition = new TestExample();
+  const example = new TestExample();
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -57,10 +55,10 @@ Deno.bench("Wasm Worker Start Go Module loading", {
 Deno.bench("Wasm Worker Start Rust Module loading", {
   group: "non imported initalization",
 }, async (_b) => {
-  const example: WorkerDefinition = new TestExample();
+  const example = new TestExample();
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -98,10 +96,10 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Rust", {
     Deno.mkdirSync("./public/bench");
   }
 
-  const example: WorkerDefinition = new TestExample();
+  const example = new TestExample();
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -127,6 +125,8 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Rust", {
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
   await import(__dirname + "/../public/bench/bridge.js");
+
+  //@ts-ignore defined in global
   self["pool"].terminate();
 });
 
@@ -141,10 +141,10 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Tiny Go", {
     Deno.mkdirSync("./public/bench");
   }
 
-  const example: WorkerDefinition = new TestExample();
+  const example = new TestExample();
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -170,6 +170,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Tiny Go", {
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
   await import(__dirname + "/../public/bench/bridge.js");
+  //@ts-ignore global defined`
   self["pool"].terminate();
 });
 
@@ -184,10 +185,10 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
     Deno.mkdirSync("./public/bench");
   }
 
-  const example: WorkerDefinition = new TestExample();
+  const example = new TestExample();
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
-    Example
+    TestExample
   >(
     example,
     {
@@ -213,5 +214,6 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
   await import(__dirname + "/../public/bench/bridge.js");
+  //@ts-ignore global defined
   self["pool"].terminate();
 });

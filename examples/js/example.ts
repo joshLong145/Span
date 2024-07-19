@@ -1,8 +1,6 @@
-import { assertExists } from "https://deno.land/std@0.210.0/assert/assert_exists.ts";
-import { InstanceConfiguration } from "../../src/types.ts";
+import type { TaskPromise } from "../../src/PromiseExtension.ts";
+import type { InstanceConfiguration } from "../../src/types.ts";
 import { InstanceWrapper, WorkerDefinition } from "./../../src/mod.ts";
-import { assertIsError } from "https://deno.land/std@0.210.0/assert/assert_is_error.ts";
-
 class Example extends WorkerDefinition {
   public constructor() {
     super();
@@ -96,24 +94,10 @@ for (let i = 0; i < 48; i++) {
 await example.execute("fib", { count: 46 });
 await example.execute("getGpuAdapter");
 
-const workerPrms = example.execute("undefinedExecution");
-
-// handle a rejection of the promise due to a timeout
-workerPrms.catch((e) => {
-  assertIsError(e);
+let workerPrms: TaskPromise = example.execute("undefinedExecution");
+workerPrms.timeout(1_000);
+workerPrms.promise.catch((err) => {
+  console.log("hello");
 });
 
-// timeout the above execution call in 1 second
-workerPrms.timeout(1_000);
-
-// you can also use await with a try catch to manage the timeout
-try {
-  await workerPrms;
-} catch (e) {
-  assertIsError(e);
-}
-
-setInterval(() => {
-  console.log(example.pool?.getThreadStates());
-}, 500);
 //example.terminateWorker();

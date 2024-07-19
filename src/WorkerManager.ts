@@ -45,7 +45,7 @@ self.setInterval(async () => {
         rej = reject;
         try {
           let res = _execMap[task.name](task.buffer, task.args);
-          if (res.then) {
+          if (res && res.then) {
             let retVal;
             res.then((val) => {
               retVal = val;

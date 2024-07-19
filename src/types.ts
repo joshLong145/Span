@@ -1,5 +1,6 @@
 import { WorkerDefinition } from "./InstanceWrapper.ts";
 import { Pool } from "./Pool.ts";
+import { TaskPromise } from "./PromiseExtension.ts";
 import { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export interface BridgeConfiguration {
@@ -39,6 +40,11 @@ export interface InstanceConfiguration {
     path on disk to a compiled wasm module
   */
   modulePath?: string;
+
+  /**
+   * the maximum number of workers which should be created
+   */
+  workerCount: number;
 }
 
 export interface DiskIOProvider {
@@ -71,22 +77,9 @@ export type WorkerInstance<T extends WorkerDefinition> = WorkerFunctions<
 >;
 
 export declare type WorkerMethod = SyncWorkerMethod | AsyncWorkerMethod;
-export declare type WorkerPromise = Promise<SharedArrayBuffer> & {
-  resolve: (value: SharedArrayBuffer | PromiseLike<SharedArrayBuffer>) => void;
-  reject: (reason: any) => void;
-  timeout: (delay: number) => void;
-  pool: Pool;
-  wrapper: WorkerPromiseGeneratorNamed;
-  buffer: SharedArrayBuffer;
-  args: any;
-  timerIds: number[];
-  settledCount: number;
-  name: string;
-  id: string;
-};
 export declare type WorkerPromiseGenerator = (
   args: Record<string, any>,
-) => WorkerPromise;
+) => TaskPromise;
 export declare type WorkerPromiseGeneratorNamed =
   & { _name: string }
   & WorkerPromiseGenerator;
@@ -106,4 +99,18 @@ export declare interface WorkerEvent {
   buffer: SharedArrayBuffer;
   id: number;
   args: Record<string, any>;
+}
+
+export declare interface PoolArgs {
+  workerCount: number;
+}
+
+export declare interface TaskInfo {
+  id: string;
+  functionName: string;
+  args: unknown[];
+}
+export declare interface ThreadState {
+  state: string;
+  tasks: TaskInfo[];
 }

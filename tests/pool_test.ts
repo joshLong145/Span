@@ -17,6 +17,6 @@ Deno.test("Pool should initalize with correct worker count", async () => {
 
   const states = pool.getThreadStates();
   assertEquals(states.length, poolSize);
-  
+
   pool.terminate();
 });
