@@ -4,7 +4,7 @@ permissions:
   contents: read  # This is required for actions/checkout
 on:
   push:
-    branches: [master, feat/**]
+    branches: [master, feat/**, ref/**, release-*]
   pull_request:
     branches: [master]
 
