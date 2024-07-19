@@ -31,6 +31,7 @@ export class WorkerHandler {
       if (!this._executionMap[e.data.id]) {
         return;
       }
+
       const context = this._executionMap[e.data.id];
 
       if (e.data.error) {
