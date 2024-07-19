@@ -60,6 +60,7 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
         fd.close();
         return source;
       },
+      workerCount: 5,
     },
   );
 

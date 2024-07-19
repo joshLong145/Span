@@ -68,6 +68,7 @@ Deno.test("Generated bridge should load functions into global", async () => {
   const wrapper = new InstanceWrapper<TestExample>(inst, {
     outputPath: "./public/js",
     namespace: "test",
+    workerCount: 5,
   });
 
   if (!existsSync("./public")) {

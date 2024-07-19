@@ -60,7 +60,7 @@ class TestExample extends WorkerDefinition {
 
 Deno.test("Worker Wrapper manager should respect buffer when returned", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
 
   await wrapper.start();
 
@@ -93,7 +93,7 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
 Deno.test("Worker Wrapper manager should respect argument value in buffer when returned", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
 
   await wrapper.start();
   await inst.execute("bar", { value: 10 }).promise.then((buf) => {
@@ -105,7 +105,7 @@ Deno.test("Worker Wrapper manager should respect argument value in buffer when r
 
 Deno.test("Worker Wrapper Generated Promise should handle rejections", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
 
   await wrapper.start();
   await inst.execute("testErrorCatch").promise.catch((err) => {

@@ -163,8 +163,8 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       this._instance as T,
       this._workerString,
       {
-        workerCount: this._config.workerCount
-      }
+        workerCount: this._config.workerCount,
+      },
     );
   }
 
