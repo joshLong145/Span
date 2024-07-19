@@ -1,7 +1,7 @@
-import { WorkerDefinition } from "./InstanceWrapper.ts";
-import { Pool } from "./Pool.ts";
-import { TaskPromise } from "./PromiseExtension.ts";
-import { WorkerWrapper } from "./WorkerWrapper.ts";
+import type { WorkerDefinition } from "./InstanceWrapper.ts";
+import type { Pool } from "./Pool.ts";
+import type { TaskPromise } from "./PromiseExtension.ts";
+import type { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export interface BridgeConfiguration {
   namespace: string;

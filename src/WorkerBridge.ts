@@ -1,9 +1,9 @@
-import { WorkerWrapper } from "./WorkerWrapper.ts";
-import { WorkerDefinition } from "./mod.ts";
+import type { WorkerWrapper } from "./WorkerWrapper.ts";
+import type { WorkerDefinition } from "./mod.ts";
 import { buildPromiseExtension, TaskPromise } from "./PromiseExtension.ts";
 import { Pool } from "./Pool.ts";
 
-import { PoolArgs, WorkerPromiseGeneratorNamed } from "./types.ts";
+import type { PoolArgs, WorkerPromiseGeneratorNamed } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
 
 export interface BridgeConfiguration {

@@ -48,6 +48,8 @@ export class Pool {
 
     this.tasks.push(task);
     this._next();
+
+    return;
   };
 
   getThreadStates = (): ThreadState[] => {

@@ -1,4 +1,4 @@
-import { WorkerWrapper } from "./WorkerWrapper.ts";
+import type { WorkerWrapper } from "./WorkerWrapper.ts";
 
 export class WorkerManager {
   private _workers: WorkerWrapper[];
