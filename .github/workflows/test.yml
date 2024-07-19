@@ -4,7 +4,7 @@ permissions:
   contents: read  # This is required for actions/checkout
 on:
   push:
-    branches: [master]
+    branches: [master, feat/**]
   pull_request:
     branches: [master]
 
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.39.1, 1.38.1, 1.41.3]
+        deno-version: [1.39.1, 1.38.1, 1.41.3, 1.45.2]
     steps:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
