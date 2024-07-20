@@ -44,6 +44,7 @@ Deno.bench("Wasm Worker Start Go Module loading", {
         fd.close();
         return mod;
       },
+      workerCount: 1,
     },
   );
 
@@ -77,6 +78,7 @@ Deno.bench("Wasm Worker Start Rust Module loading", {
         fd.close();
         return mod;
       },
+      workerCount: 1,
     },
   );
 
@@ -118,6 +120,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Rust", {
         fd.close();
         return mod;
       },
+      workerCount: 1,
     },
   );
   wrapper.create({
@@ -163,6 +166,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Tiny Go", {
         fd.close();
         return mod;
       },
+      workerCount: 1,
     },
   );
   wrapper.create({
@@ -207,6 +211,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
         fd.close();
         return mod;
       },
+      workerCount: 1
     },
   );
   wrapper.create({
