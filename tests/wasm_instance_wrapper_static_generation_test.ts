@@ -72,7 +72,7 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
     writeFileSync: Deno.writeFileSync,
   });
 
-  await import("./../public/wasm/bridge.js").then(async () => {
+  await import("../public/wasm/bridge.js").then(async () => {
     //@ts-ignore
     assertExists(self["test2"]);
     //@ts-ignore

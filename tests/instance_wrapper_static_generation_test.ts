@@ -83,7 +83,7 @@ Deno.test("Generated bridge should load functions into global", async () => {
     writeFileSync: Deno.writeFileSync,
   });
 
-  await import("./../public/js/bridge.js");
+  await import("../public/js/bridge.js");
 
   assertExists(self["test.foo"]);
 
