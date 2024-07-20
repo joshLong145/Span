@@ -2,7 +2,7 @@
   "lock": "deno-lock.json",
   "tasks": {
     "fmt": "deno fmt",
-    "bench": "deno bench benchmark/ --no-check --allow-all",
+    "bench": "cd benchmark/hyperfine && ./run.sh",
     "test": "deno test -A --parallel --trace-ops --no-check",
     "ok": "deno fmt && deno task test --coverage=.coverage && deno coverage --exclude=test --exclude=benchmark --exclude=public .coverage",
     "gen-npm": "deno run -A --no-check scripts/gen-npm.ts"
