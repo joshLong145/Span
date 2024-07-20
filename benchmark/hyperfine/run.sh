@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Small script for using hyper as a bechmarking tool for measuring operations which do heavy I/O with sys apis
+# Small script for using hyper directly as denos built in benchmarking was showing issues with using crupto suble api 
 NUM_OPS=5
 WORKER_COUNT=5
 BUFFER_TOLERANCE=1 # only let a single worker buffer this many tasks

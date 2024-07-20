@@ -27,4 +27,16 @@ jobs:
         id: test
         run: deno task ok
       - name: Benchmark
-        run: deno task bench
+        run: |
+          bench=$(deno task bench)
+          echo "::set-output name=benchmarks::$bench"
+      - name: Auto Comment
+        uses: bubkoo/auto-comment@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pullRequestOpened: >
+            ```
+            Benchmarks:
+
+            ${{bench}}
+            ```

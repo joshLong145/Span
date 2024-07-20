@@ -80,14 +80,14 @@ const example: Example = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
-  {} as InstanceConfiguration,
+  {workerCount: 30} as InstanceConfiguration,
 );
 
 await wrapper.start();
 
 await example.execute("addOne", { name: "foo" });
 
-for (let i = 0; i < 48; i++) {
+for (let i = 0; i < 20; i++) {
   example.execute("getKeyPair", { num: i });
 }
 
@@ -100,4 +100,5 @@ workerPrms.promise.catch((err) => {
   console.log("hello");
 });
 
-//example.terminateWorker();
+console.log(Deno.metrics());
+
