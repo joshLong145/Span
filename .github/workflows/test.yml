@@ -27,6 +27,7 @@ jobs:
         id: test
         run: deno task ok
       - name: Benchmark
+        id: benchmark
         run: |
           bench=$(deno task bench)
           echo "::set-output name=benchmarks::$bench"
@@ -38,5 +39,5 @@ jobs:
             ```
             Benchmarks:
 
-            ${{bench}}
+            ${{ steps.benchmark.outputs.benchmarks }}
             ```
