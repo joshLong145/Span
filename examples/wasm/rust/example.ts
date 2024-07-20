@@ -33,11 +33,12 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
       const fd = Deno.openSync(path);
       return Deno.readAllSync(fd);
     },
+    workerCount: 1,
   },
 );
 
 await wrapper.start();
-await example.execute("test2").then((buffer: SharedArrayBuffer) => {
+await example.execute("test2").promise.then((buffer: SharedArrayBuffer) => {
   console.log(new Uint8Array(buffer)[0]);
 });
 
