@@ -31,35 +31,6 @@ class Example extends WorkerDefinition {
     return buffer;
   };
 
-  getKeyPair = async (
-    buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
-  ): Promise<SharedArrayBuffer> => {
-    const keyPair = await crypto.subtle.generateKey(
-      {
-        name: "RSA-OAEP",
-        modulusLength: 4096,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: "SHA-256",
-      },
-      true,
-      ["encrypt", "decrypt"],
-    );
-
-    console.log("generated key", _args);
-    return buffer;
-  };
-
-  getGpuAdapter = async (
-    buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
-  ): Promise<SharedArrayBuffer> => {
-    const adapter = {};
-    console.log("gpu adapter", adapter);
-
-    return buffer;
-  };
-
   undefinedExecution = (
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
@@ -80,25 +51,20 @@ const example: Example = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
-  {workerCount: 30} as InstanceConfiguration,
+  {workerCount: 25} as InstanceConfiguration,
 );
 
 await wrapper.start();
 
-await example.execute("addOne", { name: "foo" });
-
-for (let i = 0; i < 20; i++) {
-  example.execute("getKeyPair", { num: i });
-}
-
-await example.execute("fib", { count: 46 });
-await example.execute("getGpuAdapter");
-
-let workerPrms: TaskPromise = example.execute("undefinedExecution");
-workerPrms.timeout(1_000);
-workerPrms.promise.catch((err) => {
-  console.log("hello");
+const prms = example.execute("addOne").promise.then((buffer: SharedArrayBuffer) => {
+  console.log("result", new Uint8Array(buffer)[0]);
 });
 
-console.log(Deno.metrics());
+const workerPrms: TaskPromise = example.execute("undefinedExecution");
+workerPrms.timeout(1_000);
+workerPrms.promise.catch((err) => {
+  console.error("a timeout occured", err);
+});
+await prms;
+example.terminateWorker();
 
