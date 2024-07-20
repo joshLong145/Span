@@ -16,7 +16,7 @@ jobs:
         deno-version: [1.39.1, 1.38.1, 1.41.3]
     steps:
       - name: Install hyperfine
-        run: apt-get install -y hyperfine
+        run: sudo apt-get install -y hyperfine
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
       - name: Use Deno Version ${{ matrix.deno-version }}
