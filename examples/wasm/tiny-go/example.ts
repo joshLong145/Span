@@ -39,22 +39,26 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
       return Deno.readAllSync(fd);
     },
     workerCount: 5,
-  }
+  },
 );
 
 wrapper.start();
 
-await example.execute("generatePrimes").promise.then((buf: SharedArrayBuffer) => {
-  console.log("first value in buffer ", new Int32Array(buf)[0]);
-});
+await example.execute("generatePrimes").promise.then(
+  (buf: SharedArrayBuffer) => {
+    console.log("first value in buffer ", new Int32Array(buf)[0]);
+  },
+);
 
 example.terminateWorker();
 
 await wrapper.restart();
 console.log("restarting web workers");
 
-await example.execute("generatePrimes").promise.then((buf: SharedArrayBuffer) => {
-  console.log("first value in buffer ", new Int32Array(buf)[0]);
-});
+await example.execute("generatePrimes").promise.then(
+  (buf: SharedArrayBuffer) => {
+    console.log("first value in buffer ", new Int32Array(buf)[0]);
+  },
+);
 
 example.terminateWorker();

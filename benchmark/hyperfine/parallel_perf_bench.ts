@@ -26,7 +26,9 @@ class KeyGenerator extends WorkerDefinition {
 
 async function parallelKeygenTest(opCount: number, workerCount: number) {
   const example = new KeyGenerator();
-  const wrapper = new InstanceWrapper<KeyGenerator>(example, {workerCount: workerCount});
+  const wrapper = new InstanceWrapper<KeyGenerator>(example, {
+    workerCount: workerCount,
+  });
   await wrapper.start();
   // Only measure time of execution. we Init shouldnt count ;)
 
@@ -40,10 +42,9 @@ async function parallelKeygenTest(opCount: number, workerCount: number) {
     // just wait for the results of the pool
     await new Promise((res) => setTimeout(res, 1));
   }
-  
+
   example.terminateWorker();
 }
-
 
 async function syncKeygenTest(opCount: number) {
   for (let i = 0; i < opCount; i++) {
@@ -61,7 +62,11 @@ async function syncKeygenTest(opCount: number) {
 }
 
 const opCount = parseInt(Deno.env.get("SPAN_HYPER_TEST_NUM_OPS") ?? "5", 10);
-const workerCount = parseInt(Deno.env.get("SPAN_HYPER_TEST_WORKER_COUNT") ?? "5", 10)
+const workerCount = parseInt(
+  Deno.env.get("SPAN_HYPER_TEST_WORKER_COUNT") ?? "5",
+  10,
+);
 
 Deno.env.get("SPAN_HYPER_TEST") === "sync" && syncKeygenTest(opCount);
-Deno.env.get("SPAN_HYPER_TEST") === "parallel" && parallelKeygenTest(opCount, workerCount);
+Deno.env.get("SPAN_HYPER_TEST") === "parallel" &&
+  parallelKeygenTest(opCount, workerCount);

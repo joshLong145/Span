@@ -51,14 +51,16 @@ const example: Example = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
-  {workerCount: 25} as InstanceConfiguration,
+  { workerCount: 25 } as InstanceConfiguration,
 );
 
 await wrapper.start();
 
-const prms = example.execute("addOne").promise.then((buffer: SharedArrayBuffer) => {
-  console.log("result", new Uint8Array(buffer)[0]);
-});
+const prms = example.execute("addOne").promise.then(
+  (buffer: SharedArrayBuffer) => {
+    console.log("result", new Uint8Array(buffer)[0]);
+  },
+);
 
 const workerPrms: TaskPromise = example.execute("undefinedExecution");
 workerPrms.timeout(1_000);
@@ -67,4 +69,3 @@ workerPrms.promise.catch((err) => {
 });
 await prms;
 example.terminateWorker();
-

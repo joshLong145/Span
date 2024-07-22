@@ -212,7 +212,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
         fd.close();
         return mod;
       },
-      workerCount: 1
+      workerCount: 1,
     },
   );
   wrapper.create({
@@ -220,7 +220,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
   });
 
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-  await import(__dirname + "/../public/bench/bridge.js");;
+  await import(__dirname + "/../public/bench/bridge.js");
   //@ts-ignore global defined
   self["pool"].terminate();
 });
