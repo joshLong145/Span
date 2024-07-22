@@ -26,7 +26,6 @@ jobs:
       - name: Unit Testing
         id: test
         run: deno task ok
-        working-directory: ${{github.workspace}}
       - name: Benchmark
         id: benchmark
         run: |
