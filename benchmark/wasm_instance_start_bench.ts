@@ -127,7 +127,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Rust", {
     writeFileSync: Deno.writeFileSync,
   });
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-  await import("../public/bench/bridge.js");
+  await import(__dirname + "/../public/bench/bridge.js");
 
   //@ts-ignore defined in global
   self["pool"].terminate();
@@ -173,7 +173,8 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Tiny Go", {
     writeFileSync: Deno.writeFileSync,
   });
 
-  await import("../public/bench/bridge.js");
+  const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
+  await import(__dirname + "/../public/bench/bridge.js");
   //@ts-ignore global defined`
   self["pool"].terminate();
 });
@@ -218,7 +219,8 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
     writeFileSync: Deno.writeFileSync,
   });
 
-  await import("../public/bench/bridge.js");
+  const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
+  await import(__dirname + "/../public/bench/bridge.js");;
   //@ts-ignore global defined
   self["pool"].terminate();
 });
