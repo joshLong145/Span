@@ -1,3 +1,5 @@
+import { STATES } from "./constants.ts";
+
 // deno-lint-ignore-file no-explicit-any
 export class WorkerHandler {
   private sourceDef: string;
@@ -5,7 +7,7 @@ export class WorkerHandler {
 
   public _executionMap: Record<string, any> = {};
   public worker: any;
-  public state: string = "BUSY";
+  public state: string = STATES.BUSY;
 
   constructor(source: string, args: any) {
     this._args = args;
@@ -24,7 +26,7 @@ export class WorkerHandler {
 
     this.worker.onmessage = (e: MessageEvent<any>) => {
       if (e.data.ready) {
-        this.state = "IDLE";
+        this.state = STATES.IDLE;
         return;
       }
 
@@ -45,14 +47,15 @@ export class WorkerHandler {
       delete this._executionMap[e.data.id];
 
       if (Object.keys(this._executionMap).length === 0) {
-        this.state = "IDLE";
+        this.state = STATES.IDLE;
       } else {
-        this.state = "BUSY";
+        this.state = STATES.BUSY;
       }
     };
   }
 
   public isReady(): boolean {
-    return this.state === "IDLE" || Object.keys(this._executionMap).length < 1;
+    return this.state === STATES.IDLE ||
+      Object.keys(this._executionMap).length < 1;
   }
 }

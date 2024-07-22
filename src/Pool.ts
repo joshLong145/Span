@@ -1,3 +1,4 @@
+import { STATES } from "./constants.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 import type { PoolArgs, TaskInfo, ThreadState } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
@@ -85,11 +86,11 @@ export class Pool {
         return;
       }
 
-      thread.state = "BUSY";
+      thread.state = STATES.BUSY;
       const task = this.tasks.shift();
       // if we cant find the task id just bail out
       if (!task?.id) {
-        thread.state = "IDLE";
+        thread.state = STATES.IDLE;
         return;
       }
 

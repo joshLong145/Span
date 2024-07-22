@@ -5,6 +5,7 @@ import { Pool } from "./Pool.ts";
 
 import type { PoolArgs, WorkerPromiseGeneratorNamed } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
+import { STATES } from "./constants.ts";
 
 export interface BridgeConfiguration {
   namespace: string;
@@ -69,6 +70,7 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
     }
 
     return `
+const STATES = ${JSON.stringify(STATES)};
 ${Pool.toString()}
 ${TaskPromise.toString()}
 ${WorkerHandler.toString()}
