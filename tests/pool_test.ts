@@ -1,6 +1,6 @@
 import {
   assertEquals,
-  assertExists,
+  type assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 
 import { Pool } from "../src/Pool.ts";
@@ -17,6 +17,6 @@ Deno.test("Pool should initalize with correct worker count", async () => {
 
   const states = pool.getThreadStates();
   assertEquals(states.length, poolSize);
-  
+
   pool.terminate();
 });

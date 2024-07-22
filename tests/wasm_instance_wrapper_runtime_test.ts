@@ -84,19 +84,20 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
         fd.close();
         return mod;
       },
+      workerCount: 5,
     },
   );
 
   await wrapper.start();
 
-  await example.execute("testBuffer").then((buf: SharedArrayBuffer) => {
+  await example.execute("testBuffer").promise.then((buf: SharedArrayBuffer) => {
     assertEquals(new Uint32Array(buf)[0], 1);
   });
-  await example.execute("testBuffer").then((buf: SharedArrayBuffer) => {
+  await example.execute("testBuffer").promise.then((buf: SharedArrayBuffer) => {
     assertEquals(new Uint32Array(buf)[0], 2);
   });
 
-  await example.execute("testParams", { foo: "bar" }).then(
+  await example.execute("testParams", { foo: "bar" }).promise.then(
     (buf: SharedArrayBuffer) => {
       assertExists(new Uint32Array(buf)[0]);
       example.terminateWorker();
@@ -125,12 +126,13 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
         fd.close();
         return mod;
       },
+      workerCount: 5,
     },
   );
 
   await wrapper.start();
 
-  await example.execute("testParams", { foo: "bar" }).then(
+  await example.execute("testParams", { foo: "bar" }).promise.then(
     (buf: SharedArrayBuffer) => {
       assertExists(new Uint32Array(buf)[0]);
       example.terminateWorker();
@@ -160,11 +162,12 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
         fd.close();
         return source;
       },
+      workerCount: 5,
     },
   );
 
   await wrapper.start();
-  await example.execute("test2").then(
+  await example.execute("test2").promise.then(
     (buffer: SharedArrayBuffer) => {
       assertExists(new Uint32Array(buffer)[0]);
     },

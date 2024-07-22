@@ -1,8 +1,6 @@
-import { assertExists } from "https://deno.land/std@0.210.0/assert/assert_exists.ts";
-import { InstanceConfiguration } from "../../src/types.ts";
+import type { TaskPromise } from "../../src/PromiseExtension.ts";
+import type { InstanceConfiguration } from "../../src/types.ts";
 import { InstanceWrapper, WorkerDefinition } from "./../../src/mod.ts";
-import { assertIsError } from "https://deno.land/std@0.210.0/assert/assert_is_error.ts";
-
 class Example extends WorkerDefinition {
   public constructor() {
     super();
@@ -33,35 +31,6 @@ class Example extends WorkerDefinition {
     return buffer;
   };
 
-  getKeyPair = async (
-    buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
-  ): Promise<SharedArrayBuffer> => {
-    const keyPair = await crypto.subtle.generateKey(
-      {
-        name: "RSA-OAEP",
-        modulusLength: 4096,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: "SHA-256",
-      },
-      true,
-      ["encrypt", "decrypt"],
-    );
-
-    console.log("generated key", _args);
-    return buffer;
-  };
-
-  getGpuAdapter = async (
-    buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
-  ): Promise<SharedArrayBuffer> => {
-    const adapter = {};
-    console.log("gpu adapter", adapter);
-
-    return buffer;
-  };
-
   undefinedExecution = (
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
@@ -82,38 +51,21 @@ const example: Example = new Example();
 
 const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
-  {} as InstanceConfiguration,
+  { workerCount: 25 } as InstanceConfiguration,
 );
 
 await wrapper.start();
 
-await example.execute("addOne", { name: "foo" });
+const prms = example.execute("addOne").promise.then(
+  (buffer: SharedArrayBuffer) => {
+    console.log("result", new Uint8Array(buffer)[0]);
+  },
+);
 
-for (let i = 0; i < 48; i++) {
-  example.execute("getKeyPair", { num: i });
-}
-
-await example.execute("fib", { count: 46 });
-await example.execute("getGpuAdapter");
-
-const workerPrms = example.execute("undefinedExecution");
-
-// handle a rejection of the promise due to a timeout
-workerPrms.catch((e) => {
-  assertIsError(e);
-});
-
-// timeout the above execution call in 1 second
+const workerPrms: TaskPromise = example.execute("undefinedExecution");
 workerPrms.timeout(1_000);
-
-// you can also use await with a try catch to manage the timeout
-try {
-  await workerPrms;
-} catch (e) {
-  assertIsError(e);
-}
-
-setInterval(() => {
-  console.log(example.pool?.getThreadStates());
-}, 500);
-//example.terminateWorker();
+workerPrms.promise.catch((err) => {
+  console.error("a timeout occured", err);
+});
+await prms;
+example.terminateWorker();

@@ -1,25 +1,24 @@
-import { resolve } from "https://deno.land/std@0.211.0/path/resolve.ts";
-import { WorkerPromise } from "./types.ts";
+import type { TaskPromise } from "./PromiseExtension.ts";
+import type { PoolArgs, TaskInfo, ThreadState } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
 
 export class Pool {
   public threads: WorkerHandler[] = [];
-  public tasks: any = [];
-  private _args: any = [];
+  public tasks: TaskPromise[] = [];
+  private _args: PoolArgs;
   private _waitLock: Promise<void> | undefined;
   private _waitLockResolver: any | undefined;
 
-  constructor(args: any) {
+  constructor(args: PoolArgs) {
     this._args = args;
   }
 
   init = async (definition: string): Promise<void> => {
     for (let i = 0; i < this._args.workerCount; i++) {
-      //@ts-ignore deno option
       this.threads.push(new WorkerHandler(definition, {}));
     }
     const isReady = () => {
-      const ready = this.threads.filter((thrad) => thrad.isReady()).length ===
+      const ready = this.threads.filter((thread) => thread.isReady()).length ===
         this._args.workerCount;
       return ready;
     };
@@ -38,23 +37,34 @@ export class Pool {
     return undefined;
   };
 
-  exec = (task: WorkerPromise) => {
+  exec = (task: TaskPromise) => {
     const thread = this.threads.find((t) => {
       return t.isReady();
     });
     if (!thread) {
+      //@ts-ignore is defined
       task.reject(new Error("Max pool queue reached"));
     }
 
     this.tasks.push(task);
-    this._next().catch(() => {});
+    this._next();
+
+    return;
   };
 
-  getThreadStates = (): Record<string, any>[] => {
+  getThreadStates = (): ThreadState[] => {
     return this.threads.map((t) => {
+      const tasks: TaskInfo[] = [];
+      for (const taskId of Object.keys(t._executionMap)) {
+        tasks.push({
+          id: taskId,
+          functionName: t._executionMap[taskId]?.promise?.name,
+          args: t._executionMap[taskId]?.promise?.args,
+        });
+      }
       return {
         state: t.state,
-        tasks: Object.keys(t._executionMap),
+        tasks: tasks,
       };
     });
   };
@@ -65,36 +75,36 @@ export class Pool {
     }
   };
 
-  _next = (): Promise<void> => {
-    return new Promise<void>((resolve, _reject) => {
-      if (this.tasks.length > 0) {
-        const thread = this.threads.find((t) => {
-          return t.isReady();
-        });
-        if (!thread) {
-          _reject();
-          return;
-        }
-        const task = this.tasks.shift();
-        thread._executionMap[task.id] = {
-          promise: task,
-          resolve: task.resolve,
-          reject: task.reject,
-        };
-        thread.worker.postMessage({
-          name: task.name,
-          id: task.id,
-          buffer: task.buffer,
-          args: task.args,
-        });
+  _next = (): Promise<void | SharedArrayBuffer> | undefined => {
+    if (this.tasks.length > 0) {
+      const thread = this.threads.find((t) => {
+        return t.isReady();
+      });
 
-        thread.state = "BUSY";
-
-        this._next().catch(() => {});
-      } else {
-        resolve();
+      if (!thread) {
+        return;
       }
-    });
+
+      thread.state = "BUSY";
+      const task = this.tasks.shift();
+      // if we cant find the task id just bail out
+      if (!task?.id) {
+        thread.state = "IDLE";
+        return;
+      }
+
+      thread._executionMap[task.id] = {
+        promise: task,
+        resolve: task.resolve,
+        reject: task.reject,
+      };
+      thread.worker.postMessage({
+        name: task.name,
+        id: task.id,
+        buffer: task.buffer,
+        args: task.args,
+      });
+    }
   };
 
   _wait = (ms: number): Promise<void> => {

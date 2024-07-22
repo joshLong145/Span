@@ -8,7 +8,7 @@ class Example extends WorkerDefinition {
     super();
   }
 
-  test2 = (
+  generatePrimes = (
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
   ): SharedArrayBuffer => {
@@ -17,29 +17,6 @@ class Example extends WorkerDefinition {
     //@ts-ignore
     self.primeGenerator();
     return arr.buffer as SharedArrayBuffer;
-  };
-
-  test1 = (
-    buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
-  ): SharedArrayBuffer => {
-    const arr = new Int32Array(buffer);
-    const myString = "A rather long string of English text, an error message \
-                actually that just keeps going and going -- an error \
-                message to make the Energizer bunny blush (right through \
-                those Schwarzenegger shades)! Where was I? Oh yes, \
-                you've got an error and all the extraneous whitespace is \
-                just gravy.  Have a nice day.";
-    for (let index = 0; index < 2048; index++) {
-      let hash = 0;
-      for (let i = 0, len = myString.length; i < len; i++) {
-        let chr = myString.charCodeAt(i);
-        hash = (hash << 5) - hash + chr;
-        hash |= 0; // Convert to 32bit integer
-      }
-      arr[index] = hash;
-    }
-    return buffer;
   };
 }
 
@@ -61,23 +38,27 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
       const fd = Deno.openSync(path);
       return Deno.readAllSync(fd);
     },
+    workerCount: 5,
   },
 );
 
 wrapper.start();
 
-await example.execute("test1");
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  console.log("first value in buffer ", new Int32Array(buf)[0]);
-});
+await example.execute("generatePrimes").promise.then(
+  (buf: SharedArrayBuffer) => {
+    console.log("first value in buffer ", new Int32Array(buf)[0]);
+  },
+);
 
 example.terminateWorker();
 
 await wrapper.restart();
-console.log("restarting web worker");
+console.log("restarting web workers");
 
-await example.execute("test2").then((buf: SharedArrayBuffer) => {
-  console.log("first value in buffer ", new Int32Array(buf)[0]);
-});
+await example.execute("generatePrimes").promise.then(
+  (buf: SharedArrayBuffer) => {
+    console.log("first value in buffer ", new Int32Array(buf)[0]);
+  },
+);
 
 example.terminateWorker();

@@ -1,10 +1,9 @@
-import { WorkerWrapper } from "./WorkerWrapper.ts";
-import { WorkerDefinition } from "./mod.ts";
-import { buildPromiseExtension } from "./PromiseExtension.ts";
+import type { WorkerWrapper } from "./WorkerWrapper.ts";
+import type { WorkerDefinition } from "./mod.ts";
+import { buildPromiseExtension, TaskPromise } from "./PromiseExtension.ts";
 import { Pool } from "./Pool.ts";
 
-import { WorkerPromiseGeneratorNamed } from "./types.ts";
-import { WorkerPromise } from "./types.ts";
+import type { PoolArgs, WorkerPromiseGeneratorNamed } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
 
 export interface BridgeConfiguration {
@@ -54,8 +53,9 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
   public async workerBootstrap(
     self: WorkerDefinition,
     bridgeStr: string,
+    poolArgs: PoolArgs = { workerCount: 5 },
   ): Promise<void> {
-    const pool = new Pool({ workerCount: 5 });
+    const pool = new Pool(poolArgs);
     self.pool = pool;
 
     await pool.init(bridgeStr);
@@ -63,13 +63,14 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
 
   private _workerBootstrap(worker: string): string {
     const workerBuff = new TextEncoder().encode(worker);
-    const workerArr = [];
+    const workerArr: number[] = [];
     for (let i = 0; i < workerBuff.length; i++) {
       workerArr[i] = workerBuff[i];
     }
 
     return `
 ${Pool.toString()}
+${TaskPromise.toString()}
 ${WorkerHandler.toString()}
 let workerStr = [${workerArr.toString()}];         
 const pool = new Pool({workerCount: 5});
@@ -82,18 +83,18 @@ await pool.init(new TextDecoder().decode(new Uint8Array(workerStr)));
     for (const worker of this._workers) {
       const def: WorkerPromiseGeneratorNamed = function (args = {}) {
         const id = Pool.uuidv4();
-        const prms: WorkerPromise = buildPromiseExtension(
+        const prms: TaskPromise = buildPromiseExtension(
           id as string,
           worker,
           def,
           self,
-          self?.pool as Pool,
+          self?.pool!,
           args,
         );
 
         self.pool?.exec(prms);
 
-        return prms as WorkerPromise;
+        return prms;
       };
 
       def._name = worker.WorkerName;

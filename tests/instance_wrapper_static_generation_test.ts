@@ -51,8 +51,15 @@ class TestExample extends WorkerDefinition {
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
   ): SharedArrayBuffer => {
-    while (true) {}
-    return buffer;
+    let id = 0;
+    return new Promise<SharedArrayBuffer>((res, _rej) => {
+      id = setTimeout(() => {
+        res(buffer);
+      }, 10_000);
+    }).finally(() => {
+      clearTimeout(id);
+      return buffer;
+    });
   };
 }
 
@@ -61,6 +68,7 @@ Deno.test("Generated bridge should load functions into global", async () => {
   const wrapper = new InstanceWrapper<TestExample>(inst, {
     outputPath: "./public/js",
     namespace: "test",
+    workerCount: 5,
   });
 
   if (!existsSync("./public")) {
@@ -74,6 +82,7 @@ Deno.test("Generated bridge should load functions into global", async () => {
   wrapper.create({
     writeFileSync: Deno.writeFileSync,
   });
+
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
   await import(__dirname + "/../public/js/bridge.js");
 
@@ -90,12 +99,11 @@ Deno.test("Generated bridge should load functions into global", async () => {
   assertExists(prms.timerIds);
 
   await assertRejects(
-    () => {
+    async () => {
       const workerPrms = self["testInfiniteLoop"]();
       workerPrms.timeout(1_000);
-      return workerPrms.finally(() => {
-        assertEquals(workerPrms.settledCount, 1);
-      });
+      await workerPrms.promise;
+      assertEquals(workerPrms.settledCount, 1);
     },
     Error,
     "Timeout has occured, aborting worker execution",

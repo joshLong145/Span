@@ -15,6 +15,8 @@ jobs:
       matrix:
         deno-version: [1.39.1, 1.38.1, 1.41.3, 1.45.2]
     steps:
+      - name: Install hyperfine
+        run: sudo apt-get install -y hyperfine
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
       - name: Use Deno Version ${{ matrix.deno-version }}
@@ -25,4 +27,17 @@ jobs:
         id: test
         run: deno task ok
       - name: Benchmark
-        run: deno task bench
+        id: benchmark
+        run: |
+          bench=$(deno task bench)
+          echo "::set-output name=benchmarks::$bench"
+      - name: Auto Comment
+        uses: bubkoo/auto-comment@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pullRequestOpened: >
+            ```
+            Benchmarks:
+
+            ${{ steps.benchmark.outputs.benchmarks }}
+            ```

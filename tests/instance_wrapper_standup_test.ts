@@ -21,14 +21,14 @@ class TestExample extends WorkerDefinition {
 
 Deno.test("Worker Wrapper should be defined", () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {});
-  assertEquals(wrapper["_config"], {});
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  assertEquals(wrapper["_config"], { workerCount: 5 });
   assertEquals(inst, wrapper["_instance"]);
 });
 
 Deno.test("Worker Wrapper manager should be defined when started", () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 1 });
   wrapper.start();
   inst.terminateWorker();
   assertExists(wrapper["_wm"]);
@@ -37,7 +37,7 @@ Deno.test("Worker Wrapper manager should be defined when started", () => {
 
 Deno.test("Worker Wrapper manager should be defined when started", () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {});
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 1 });
   wrapper.start();
   inst.terminateWorker();
   //@ts-ignore is defined

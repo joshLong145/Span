@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 export class WorkerHandler {
   private sourceDef: string;
   private _args: any;
@@ -17,7 +18,7 @@ export class WorkerHandler {
 
     this.worker = new Worker(URL.createObjectURL(blob), {
       //@ts-ignore: deno flag
-      deno: true,
+      deno: globalThis.Deno ? true : false,
       type: "module",
     });
 
@@ -30,11 +31,12 @@ export class WorkerHandler {
       if (!this._executionMap[e.data.id]) {
         return;
       }
+
       const context = this._executionMap[e.data.id];
 
       if (e.data.error) {
         context.promise &&
-          context.reject(new Error("Error occured in worker: ", e.data.error));
+          context.reject(new Error("Error occured in worker: " + e.data.error));
       } else {
         context.promise && context.resolve(e.data.buffer);
         this._executionMap[e.data.id].buffer = e.data.buffer;
@@ -51,6 +53,6 @@ export class WorkerHandler {
   }
 
   public isReady(): boolean {
-    return this.state === "IDLE" || Object.keys(this._executionMap).length < 10;
+    return this.state === "IDLE" || Object.keys(this._executionMap).length < 1;
   }
 }

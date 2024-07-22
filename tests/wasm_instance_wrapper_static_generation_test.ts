@@ -1,5 +1,5 @@
 import {
-  assertEquals,
+  type assertEquals,
   assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 
@@ -60,6 +60,7 @@ Deno.test("WASM Worker Should generate worker and load functions into global", a
         fd.close();
         return source;
       },
+      workerCount: 5,
     },
   );
 

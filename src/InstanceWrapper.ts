@@ -1,13 +1,10 @@
-import { Pool } from "./Pool.ts";
-import { WorkerPromise } from "./types.ts";
-import {
-  DiskIOProvider,
-  InstanceConfiguration,
-  WorkerInstance,
-} from "./types.ts";
+import type { Pool } from "./Pool.ts";
+import type { TaskPromise } from "./PromiseExtension.ts";
+
+import type { DiskIOProvider, InstanceConfiguration } from "./types.ts";
 import { WorkerBridge } from "./WorkerBridge.ts";
 import { WorkerManager } from "./WorkerManager.ts";
-import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
+import { type WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
 
 /**
  * Base class for worker imlementation
@@ -37,7 +34,8 @@ import { WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
 export class WorkerDefinition {
   public execMap: Record<
     string,
-    (args: Record<string, any>) => WorkerPromise
+    // deno-lint-ignore no-explicit-any
+    (args: Record<string, any>) => TaskPromise
   > = {};
 
   /** */
@@ -57,8 +55,9 @@ export class WorkerDefinition {
    */
   public execute(
     name: Exclude<keyof this, keyof WorkerDefinition>,
+    // deno-lint-ignore no-explicit-any
     args: Record<string, any> = {},
-  ): WorkerPromise {
+  ): TaskPromise {
     return this.execMap[name as unknown as string](args);
   }
 
@@ -67,8 +66,9 @@ export class WorkerDefinition {
    */
   public get(
     name: Exclude<keyof this, keyof WorkerDefinition>,
-  ): void | Promise<SharedArrayBuffer> {
-    return this.execMap[name as unknown as string] as any;
+    // deno-lint-ignore no-explicit-any
+  ): (args: Record<string, any>) => TaskPromise {
+    return this.execMap[name as unknown as string];
   }
 
   /**
@@ -122,12 +122,12 @@ export class WorkerDefinition {
  */
 export class InstanceWrapper<T extends WorkerDefinition> {
   private _config: InstanceConfiguration;
-  private _instance: WorkerInstance<T>;
+  private _instance: T;
   private _wm: WorkerManager | undefined;
   private _wb: WorkerBridge | undefined;
   private _workerString = "";
 
-  constructor(instance: WorkerInstance<T>, config: InstanceConfiguration) {
+  constructor(instance: T, config: InstanceConfiguration) {
     this._instance = instance;
     this._config = config;
     this._generate();
@@ -162,6 +162,9 @@ export class InstanceWrapper<T extends WorkerDefinition> {
     await this?._wb?.workerBootstrap(
       this._instance as T,
       this._workerString,
+      {
+        workerCount: this._config.workerCount,
+      },
     );
   }
 
