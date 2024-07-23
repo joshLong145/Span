@@ -33,4 +33,4 @@ jobs:
       - name: Auto Comment
         uses: mshick/add-pr-comment@v2
         with:
-          message: `${{ steps.benchmark.outputs.benchmarks }}`
+          message: '${{ steps.benchmark.outputs.benchmarks }}'
