@@ -28,15 +28,11 @@ jobs:
       - name: Benchmark
         id: benchmark
         run: |
+        {
           bench=$(deno task bench)
           echo "::set-output name=benchmarks::$bench"
+        }
       - name: Auto Comment
-        uses: wow-actions/auto-comment@v1
+        uses: mshick/add-pr-comment@v2
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          pullRequestOpened: |
-            ```
-            Benchmarks:
-
-            ${{ steps.benchmark.outputs.benchmarks }}
-            ```
+        message: `${{ steps.benchmark.outputs.benchmarks }}`
