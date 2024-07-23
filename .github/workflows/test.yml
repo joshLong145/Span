@@ -27,10 +27,4 @@ jobs:
         run: deno task ok
       - name: Benchmark
         id: benchmark
-        run: |
-          bench=$(deno task bench)
-          echo "::set-output name=benchmarks::$bench"
-      - name: Auto Comment
-        uses: mshick/add-pr-comment@v2
-        with:
-          message: '${{ steps.benchmark.outputs.benchmarks }}'
+        run: deno task bench
