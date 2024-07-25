@@ -3,13 +3,14 @@ import {
   assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/InstanceWrapper.ts";
+import type { WorkerAny } from "../src/types.ts";
 
 class TestExample extends WorkerDefinition {
   public constructor() {
     super();
   }
 
-  test2 = (buffer: SharedArrayBuffer, _module: Record<string, any>) => {
+  test2 = (buffer: SharedArrayBuffer, _module: WorkerAny) => {
     let arr = new Int8Array(buffer);
     arr[0] += 1;
 

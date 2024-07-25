@@ -2,6 +2,7 @@ import {
   InstanceWrapper,
   WorkerDefinition,
 } from "../../../src/InstanceWrapper.ts";
+import type { WorkerAny } from "../../../src/types.ts";
 
 class Example extends WorkerDefinition {
   public constructor() {
@@ -10,7 +11,7 @@ class Example extends WorkerDefinition {
 
   generatePrimes = (
     buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
+    _args: WorkerAny,
   ): SharedArrayBuffer => {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
@@ -44,7 +45,7 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 
 wrapper.start();
 
-await example.execute("generatePrimes").promise.then(
+await example.execute("generatePrimes", {}).promise.then(
   (buf: SharedArrayBuffer) => {
     console.log("first value in buffer ", new Int32Array(buf)[0]);
   },
@@ -55,7 +56,7 @@ example.terminateWorker();
 await wrapper.restart();
 console.log("restarting web workers");
 
-await example.execute("generatePrimes").promise.then(
+await example.execute("generatePrimes", {}).promise.then(
   (buf: SharedArrayBuffer) => {
     console.log("first value in buffer ", new Int32Array(buf)[0]);
   },

@@ -1,5 +1,3 @@
-//@ts-nocheck
-
 import {
   assertEquals,
   assertExists,
@@ -8,11 +6,14 @@ import {
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
+import type { WorkerAny } from "../src/types.ts";
 
 declare global {
-  var foo: (args: Record<string, any>) => void;
-  var bar: (args: Record<string, any>) => void;
-  var worker: Worker;
+  const test: {
+    foo: (args: WorkerAny) => void;
+    bar: (args: WorkerAny) => void;
+  };
+  const worker: Worker;
 }
 
 class TestExample extends WorkerDefinition {
@@ -22,7 +23,7 @@ class TestExample extends WorkerDefinition {
 
   foo = (
     buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
+    _args: WorkerAny,
   ): ArrayBuffer => {
     const arr = new Int8Array(buffer);
     arr[0] += 1;
@@ -32,9 +33,9 @@ class TestExample extends WorkerDefinition {
 
   bar = (
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
+    args: WorkerAny,
   ): SharedArrayBuffer => {
-    const _arr = new Uint8Array(buffer)[0] = args.value;
+    const _arr = new Uint8Array(buffer)[0] = args.value as number;
     return buffer;
   };
 
@@ -49,8 +50,8 @@ class TestExample extends WorkerDefinition {
 
   testInfiniteLoop = (
     buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
-  ): SharedArrayBuffer => {
+    _args: WorkerAny,
+  ): Promise<SharedArrayBuffer> => {
     let id = 0;
     return new Promise<SharedArrayBuffer>((res, _rej) => {
       id = setTimeout(() => {
@@ -85,11 +86,13 @@ Deno.test("Generated bridge should load functions into global", async () => {
 
   const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
   await import(__dirname + "/../public/js/bridge.js");
-
+  //@ts-ignore globally defined
   assertExists(self["test.foo"]);
-
+  //@ts-ignore globally defined
   assertExists(self["test.bar"]);
+  //@ts-ignore globally defined
   await self["foo"]({ hey: "wow" });
+  //@ts-ignore globally defined
   const prms = self["test.foo"]({ foo: "bar" });
   await prms;
 
@@ -100,6 +103,7 @@ Deno.test("Generated bridge should load functions into global", async () => {
 
   await assertRejects(
     async () => {
+      //@ts-ignore globally defined
       const workerPrms = self["testInfiniteLoop"]();
       workerPrms.timeout(1_000);
       await workerPrms.promise;
@@ -109,5 +113,6 @@ Deno.test("Generated bridge should load functions into global", async () => {
     "Timeout has occured, aborting worker execution",
   );
 
+  //@ts-ignore globally defined
   self["pool"].terminate();
 });

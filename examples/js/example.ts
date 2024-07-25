@@ -1,5 +1,5 @@
 import type { TaskPromise } from "../../src/PromiseExtension.ts";
-import type { InstanceConfiguration } from "../../src/types.ts";
+import type { InstanceConfiguration, WorkerAny } from "../../src/types.ts";
 import { InstanceWrapper, WorkerDefinition } from "./../../src/mod.ts";
 class Example extends WorkerDefinition {
   public constructor() {
@@ -8,7 +8,7 @@ class Example extends WorkerDefinition {
 
   addOne = (
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
+    _args: Record<string, WorkerAny>,
   ): SharedArrayBuffer => {
     const arr = new Uint32Array(buffer);
     arr[0] += 1;
@@ -18,14 +18,14 @@ class Example extends WorkerDefinition {
 
   fib = (
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
+    args: WorkerAny,
   ): SharedArrayBuffer => {
     let i;
     const arr = new Uint32Array(buffer);
     arr[0] = 0;
     arr[1] = 1;
-
-    for (i = 2; i <= args.count; i++) {
+    const count = args.count as number;
+    for (i = 2; i <= count; i++) {
       arr[i] = arr[i - 2] + arr[i - 1];
     }
     return buffer;
@@ -33,7 +33,7 @@ class Example extends WorkerDefinition {
 
   undefinedExecution = (
     buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
+    _args: WorkerAny,
   ): Promise<SharedArrayBuffer> => {
     let id = 0;
     return new Promise<SharedArrayBuffer>((res, _rej) => {
@@ -56,13 +56,13 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 
 await wrapper.start();
 
-const prms = example.execute("addOne").promise.then(
+const prms = example.execute("addOne", {}).promise.then(
   (buffer: SharedArrayBuffer) => {
     console.log("result", new Uint8Array(buffer)[0]);
   },
 );
 
-const workerPrms: TaskPromise = example.execute("undefinedExecution");
+const workerPrms: TaskPromise = example.execute("undefinedExecution", {});
 workerPrms.timeout(1_000);
 workerPrms.promise.catch((err) => {
   console.error("a timeout occured", err);

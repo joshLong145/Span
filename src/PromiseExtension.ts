@@ -1,6 +1,6 @@
 import type { Pool } from "./Pool.ts";
 import type { WorkerWrapper } from "./WorkerWrapper.ts";
-import type { WorkerDefinition } from "./mod.ts";
+import type { WorkerAny, WorkerDefinition } from "./mod.ts";
 import type { WorkerPromiseGeneratorNamed } from "./types.ts";
 
 export function buildPromiseExtension(
@@ -9,7 +9,7 @@ export function buildPromiseExtension(
   generator: WorkerPromiseGeneratorNamed,
   self: WorkerDefinition,
   pool: Pool,
-  args: any = {},
+  args: WorkerAny = {},
 ): TaskPromise {
   const prms = new TaskPromise(
     id,
@@ -24,29 +24,30 @@ export function buildPromiseExtension(
 
 export class TaskPromise {
   public id: string;
-  public resolve?: (value: SharedArrayBuffer) => void;
-  public reject?: (error?: any) => void;
+  private _resolve?: (value: SharedArrayBuffer) => void;
+  // deno-lint-ignore no-explicit-any
+  private _reject?: (error?: any) => void;
   public timerIds: number[] = [];
   public settledCount: number = 0;
   public buffer: SharedArrayBuffer;
   public wrapper: WorkerPromiseGeneratorNamed;
   public pool: Pool;
-  public args: any;
+  public args: WorkerAny;
   public name: string;
 
   public promise: Promise<SharedArrayBuffer>;
 
   constructor(
     id: string,
-    args: any,
+    args: WorkerAny,
     name: string,
     buffer: SharedArrayBuffer,
     wrapper: WorkerPromiseGeneratorNamed,
     pool: Pool,
   ) {
     this.promise = new Promise<SharedArrayBuffer>((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
+      this._resolve = resolve;
+      this._reject = reject;
     }).finally(() => {
       for (let i = 0; i < this.timerIds.length; i++) {
         clearTimeout(this.timerIds[i]);
@@ -59,6 +60,15 @@ export class TaskPromise {
     this.buffer = buffer;
     this.pool = pool;
     this.name = name;
+  }
+
+  get resolve(): (value: SharedArrayBuffer) => void {
+    return this._resolve!;
+  }
+
+  // deno-lint-ignore no-explicit-any
+  get reject(): (error?: any) => void {
+    return this._reject!;
   }
 
   public timeout(delay: number) {

@@ -1,7 +1,8 @@
+import { WorkerAny } from "./mod.ts";
 import type { Pool } from "./Pool.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 
-import type { DiskIOProvider, InstanceConfiguration } from "./types.ts";
+import type { AsJson, DiskIOProvider, InstanceConfiguration } from "./types.ts";
 import { WorkerBridge } from "./WorkerBridge.ts";
 import { WorkerManager } from "./WorkerManager.ts";
 import { type WorkerMethod, WorkerWrapper } from "./WorkerWrapper.ts";
@@ -35,7 +36,7 @@ export class WorkerDefinition {
   public execMap: Record<
     string,
     // deno-lint-ignore no-explicit-any
-    (args: Record<string, any>) => TaskPromise
+    (args: AsJson<any>) => TaskPromise
   > = {};
 
   /** */
@@ -55,8 +56,7 @@ export class WorkerDefinition {
    */
   public execute(
     name: Exclude<keyof this, keyof WorkerDefinition>,
-    // deno-lint-ignore no-explicit-any
-    args: Record<string, any> = {},
+    args: AsJson<WorkerAny> & WorkerAny,
   ): TaskPromise {
     return this.execMap[name as unknown as string](args);
   }
@@ -67,7 +67,7 @@ export class WorkerDefinition {
   public get(
     name: Exclude<keyof this, keyof WorkerDefinition>,
     // deno-lint-ignore no-explicit-any
-  ): (args: Record<string, any>) => TaskPromise {
+  ): (args: AsJson<any>) => TaskPromise {
     return this.execMap[name as unknown as string];
   }
 

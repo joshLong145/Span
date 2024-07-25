@@ -1,7 +1,4 @@
-import {
-  assertEquals,
-  type assertExists,
-} from "https://deno.land/std@0.210.0/assert/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.210.0/assert/mod.ts";
 
 import { Pool } from "../src/Pool.ts";
 
