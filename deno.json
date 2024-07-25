@@ -13,6 +13,31 @@
     "./public/*.js",
     "./scripts/*.ts"
   ],
+  "publish": {
+    "include": [
+      "src",
+      "docs/concepts.png",
+      "deno.json",
+      "README*.md",
+      "LICENSE"
+    ]
+  },
+  "lint": {
+    "exclude": [
+      "npm",
+      "public",
+      "lib",
+      "scripts"
+    ]
+  },
+  "fmt": {
+    "exclude": [
+      "npm",
+      "public",
+      "lib",
+      "scripts"
+    ]
+  },
   "name": "@joshlong145/span",
   "version": "0.7.0",
   "exports": "./src/mod.ts"
