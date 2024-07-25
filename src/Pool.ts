@@ -1,3 +1,4 @@
+import { STATES } from "./constants.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 import type { PoolArgs, TaskInfo, ThreadState } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
@@ -7,6 +8,7 @@ export class Pool {
   public tasks: TaskPromise[] = [];
   private _args: PoolArgs;
   private _waitLock: Promise<void> | undefined;
+  // deno-lint-ignore no-explicit-any
   private _waitLockResolver: any | undefined;
 
   constructor(args: PoolArgs) {
@@ -58,8 +60,8 @@ export class Pool {
       for (const taskId of Object.keys(t._executionMap)) {
         tasks.push({
           id: taskId,
-          functionName: t._executionMap[taskId]?.promise?.name,
-          args: t._executionMap[taskId]?.promise?.args,
+          functionName: t._executionMap[taskId]?.name,
+          args: t._executionMap[taskId]?.args,
         });
       }
       return {
@@ -85,25 +87,21 @@ export class Pool {
         return;
       }
 
-      thread.state = "BUSY";
+      thread.state = STATES.BUSY;
       const task = this.tasks.shift();
       // if we cant find the task id just bail out
       if (!task?.id) {
-        thread.state = "IDLE";
+        thread.state = STATES.IDLE;
         return;
       }
 
-      thread._executionMap[task.id] = {
-        promise: task,
-        resolve: task.resolve,
-        reject: task.reject,
-      };
-      thread.worker.postMessage({
-        name: task.name,
-        id: task.id,
-        buffer: task.buffer,
-        args: task.args,
-      });
+      thread._executionMap[task.id] = task,
+        thread.worker.postMessage({
+          name: task.name,
+          id: task.id,
+          buffer: task.buffer,
+          args: task.args,
+        });
     }
   };
 
@@ -115,7 +113,7 @@ export class Pool {
 
   /** */
   public static uuidv4(): string {
-    //@ts-ignore
+    //@ts-ignore allowed expression
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
       /[018]/g,
       (c: number) =>

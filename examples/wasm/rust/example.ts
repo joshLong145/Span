@@ -2,13 +2,14 @@ import {
   InstanceWrapper,
   WorkerDefinition,
 } from "../../../src/InstanceWrapper.ts";
+import { WorkerAny } from "../../../src/mod.ts";
 
 class Example extends WorkerDefinition {
   public constructor() {
     super();
   }
 
-  test2 = (buffer: SharedArrayBuffer, _args: Record<string, any>) => {
+  test2 = (buffer: SharedArrayBuffer, _args: WorkerAny) => {
     let arr = new Int8Array(buffer);
     //@ts-ignore
     let val = self.getValue();
@@ -38,7 +39,7 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 );
 
 await wrapper.start();
-await example.execute("test2").promise.then((buffer: SharedArrayBuffer) => {
+await example.execute("test2", {}).promise.then((buffer: SharedArrayBuffer) => {
   console.log(new Uint8Array(buffer)[0]);
 });
 

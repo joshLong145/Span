@@ -1,5 +1,3 @@
-import type { WorkerDefinition } from "./InstanceWrapper.ts";
-import type { Pool } from "./Pool.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 import type { WorkerWrapper } from "./WorkerWrapper.ts";
 
@@ -51,55 +49,24 @@ export interface DiskIOProvider {
   writeFileSync: (path: string | URL, data: Uint8Array) => void;
 }
 
-// Helper type to get R if V is callable, N otherwise
-// Typically to get `never` if V is not callable
-type KeepCallable<V, R = V, N = never> = V extends (...args: any) => any ? R
-  : N;
-
-type BaseFunctionTypes<T> = (
-  name: Exclude<keyof T, keyof WorkerDefinition>,
-  args?: Record<string, any>,
-) => Promise<SharedArrayBuffer> | void;
-
-export type WorkerFunctions<B, T extends B> = {
-  [
-    Key in keyof T as KeepCallable<
-      T[Key],
-      Key
-    >
-  ]: B[Key extends keyof B ? Key : never] extends undefined ? WorkerMethod
-    : BaseFunctionTypes<T>;
-};
-
-export type WorkerInstance<T extends WorkerDefinition> = WorkerFunctions<
-  WorkerDefinition,
-  T
->;
-
-export declare type WorkerMethod = SyncWorkerMethod | AsyncWorkerMethod;
 export declare type WorkerPromiseGenerator = (
-  args: Record<string, any>,
+  args: WorkerAny,
 ) => TaskPromise;
 export declare type WorkerPromiseGeneratorNamed =
   & { _name: string }
   & WorkerPromiseGenerator;
 
-export declare type AsyncWorkerMethod = (
-  buffer: SharedArrayBuffer,
-  module: Record<string, any>,
-) => Promise<ArrayBuffer>;
-
-export declare type SyncWorkerMethod = (
-  buffer: SharedArrayBuffer,
-  module: Record<string, any>,
-) => ArrayBuffer;
-
-export declare interface WorkerEvent {
+export declare interface Task {
   name: string;
   buffer: SharedArrayBuffer;
   id: number;
-  args: Record<string, any>;
+  args: AsJson<WorkerAny>;
+  error?: string;
 }
+
+export type WorkerState = "READY" | "IDLE" | "BUSY" | "TERM" | "ABORT";
+
+export type WorkerMessage = Task | { [key: string]: WorkerState };
 
 export declare interface PoolArgs {
   workerCount: number;
@@ -108,9 +75,23 @@ export declare interface PoolArgs {
 export declare interface TaskInfo {
   id: string;
   functionName: string;
-  args: unknown[];
+  args: WorkerAny;
 }
 export declare interface ThreadState {
   state: string;
   tasks: TaskInfo[];
 }
+
+export interface WorkerAny {
+  [key: string | number]: string | number | boolean | null | WorkerAny;
+}
+
+/**
+ * Enforces types which can be serialized with `JSON.stringify`.
+ */
+export type AsJson<T> = T extends string | number | boolean | null ? T
+  // Function type used for coalesce
+  // deno-lint-ignore ban-types
+  : T extends Function ? never
+  : T extends object ? { [K in keyof T]: AsJson<T[K]> }
+  : never;

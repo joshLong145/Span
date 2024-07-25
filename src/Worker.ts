@@ -1,13 +1,19 @@
+import { STATES } from "./constants.ts";
+import type { Task, WorkerAny, WorkerMessage, WorkerState } from "./mod.ts";
+import type { TaskPromise } from "./PromiseExtension.ts";
+
 // deno-lint-ignore-file no-explicit-any
 export class WorkerHandler {
   private sourceDef: string;
-  private _args: any;
+  private _args: WorkerAny;
 
-  public _executionMap: Record<string, any> = {};
+  public _executionMap: Record<string, TaskPromise> = {};
+
+  // deno-lint-ignore no-explicit-any
   public worker: any;
-  public state: string = "BUSY";
+  public state: string = STATES.BUSY;
 
-  constructor(source: string, args: any) {
+  constructor(source: string, args: WorkerAny) {
     this._args = args;
     this.sourceDef = source;
 
@@ -22,37 +28,41 @@ export class WorkerHandler {
       type: "module",
     });
 
-    this.worker.onmessage = (e: MessageEvent<any>) => {
-      if (e.data.ready) {
-        this.state = "IDLE";
+    this.worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
+      if ((e.data as Record<string, WorkerState>).READY) {
+        this.state = STATES.IDLE;
         return;
       }
 
-      if (!this._executionMap[e.data.id]) {
+      const workerTask: MessageEvent<Task> = e as MessageEvent<Task>;
+      if (!this._executionMap[workerTask.data.id]) {
         return;
       }
 
-      const context = this._executionMap[e.data.id];
+      const context = this._executionMap[workerTask.data.id];
 
-      if (e.data.error) {
-        context.promise &&
-          context.reject(new Error("Error occured in worker: " + e.data.error));
+      if (workerTask.data.error) {
+        context &&
+          context.reject!(
+            new Error("Error occured in worker: " + workerTask.data.error),
+          );
       } else {
-        context.promise && context.resolve(e.data.buffer);
-        this._executionMap[e.data.id].buffer = e.data.buffer;
+        context && context.resolve!(workerTask.data.buffer);
+        this._executionMap[workerTask.data.id].buffer = workerTask.data.buffer;
       }
 
-      delete this._executionMap[e.data.id];
+      delete this._executionMap[workerTask.data.id];
 
       if (Object.keys(this._executionMap).length === 0) {
-        this.state = "IDLE";
+        this.state = STATES.IDLE;
       } else {
-        this.state = "BUSY";
+        this.state = STATES.BUSY;
       }
     };
   }
 
   public isReady(): boolean {
-    return this.state === "IDLE" || Object.keys(this._executionMap).length < 1;
+    return this.state === STATES.IDLE ||
+      Object.keys(this._executionMap).length < 1;
   }
 }

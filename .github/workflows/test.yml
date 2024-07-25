@@ -6,8 +6,7 @@ on:
   push:
     branches: [master, feat/**, ref/**, release-*]
   pull_request:
-    branches: [master]
-
+    branches: []
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,16 +27,4 @@ jobs:
         run: deno task ok
       - name: Benchmark
         id: benchmark
-        run: |
-          bench=$(deno task bench)
-          echo "::set-output name=benchmarks::$bench"
-      - name: Auto Comment
-        uses: bubkoo/auto-comment@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          pullRequestOpened: >
-            ```
-            Benchmarks:
-
-            ${{ steps.benchmark.outputs.benchmarks }}
-            ```
+        run: deno task bench

@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
+import { WorkerAny } from "../src/types.ts";
 
 class GoTestExample extends WorkerDefinition {
   public constructor() {
@@ -24,16 +25,16 @@ class GoTestExample extends WorkerDefinition {
 
   testParams = (
     buffer: SharedArrayBuffer,
-    args: Record<string, any>,
+    args: WorkerAny,
   ): SharedArrayBuffer => {
     const arr = new Int32Array(buffer);
-    arr[0] = args.foo;
+    arr[0] = args.foo as number;
     return buffer;
   };
 
   testAsync = async (
     buffer: SharedArrayBuffer,
-    _args: Record<string, any>,
+    _args: WorkerAny,
   ): Promise<SharedArrayBuffer> => {
     const prms: Promise<void> = new Promise((res, _rej) => {
       const a = 2 + 2;
@@ -90,12 +91,16 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
 
   await wrapper.start();
 
-  await example.execute("testBuffer").promise.then((buf: SharedArrayBuffer) => {
-    assertEquals(new Uint32Array(buf)[0], 1);
-  });
-  await example.execute("testBuffer").promise.then((buf: SharedArrayBuffer) => {
-    assertEquals(new Uint32Array(buf)[0], 2);
-  });
+  await example.execute("testBuffer", {}).promise.then(
+    (buf: SharedArrayBuffer) => {
+      assertEquals(new Uint32Array(buf)[0], 1);
+    },
+  );
+  await example.execute("testBuffer", {}).promise.then(
+    (buf: SharedArrayBuffer) => {
+      assertEquals(new Uint32Array(buf)[0], 2);
+    },
+  );
 
   await example.execute("testParams", { foo: "bar" }).promise.then(
     (buf: SharedArrayBuffer) => {
@@ -167,7 +172,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
   );
 
   await wrapper.start();
-  await example.execute("test2").promise.then(
+  await example.execute("test2", {}).promise.then(
     (buffer: SharedArrayBuffer) => {
       assertExists(new Uint32Array(buffer)[0]);
     },
