@@ -1,41 +1,47 @@
-# Span: A Web Worker Bridging Module
+# Span: Worker Pooling abstraction
 
-[![deno module](https://shield.deno.dev/x/span)](https://deno.land/x/span)
+[![Deno module](https://shield.deno.dev/x/span)](https://deno.land/x/span)
+[![JSR](https://jsr.io/badges/@joshlong145/span)](https://jsr.io/@joshlong145/span)
 [![Unit Test CI](https://github.com/joshLong145/Span/actions/workflows/test.yml/badge.svg)](https://github.com/joshLong145/Span/actions/workflows/test.yml)
 
 <p align="center">
   <img width="200px" height="200px" src="https://github.com/joshLong145/DenoWebWorkerBridge/blob/master/images/worker-friend.png?raw=true" />
 </p>
 
-Allows for class definitions to be translated to awaitable function definitions
-which run in the same `Web Worker` Each function defined within a given class
-definition is passed an `SharedArrayBuffer` which can be used for caching
-execution state for later use. The goal of this project is to lower the barrier
-to use web workers within applications and provide an intuitive abstraction for
-managing execution state and shared memory.
+`Span` provides a simplified way to use Web Workers in Deno and other JavaScript
+runtimes. Abstracting the complexities of Web Workers of WebWorkers through a
+pooling abstraction. Allowing you to define methods within a class that are
+automatically translated into functions executed in a Web Worker. This module
+helps manage execution state and shared memory using `SharedArrayBuffer`.
 
-Each function within a class definition extending `WorkerDefinition` is given
-its own shared buffer instance which is accessible from the generated `bridge`
-the bridge exports all wrapper functions for the given definition.
+## Features
 
-## Running Web Assembly modules
-
-It's also possible to declare a `Web Assembly` file which can be interfaced with
-with in the worker context.
-
-Currently supports
-
-- `Golang`
-- `Rust`
-
-compiled WASM. Support will be added for WASM compiled and instated through
-module exports shall be added.
+- **Class-based Definition**: Define methods in a class extending
+  `WorkerDefinition`, which are then converted into functions that run in a Web
+  Worker.
+- **Shared Memory**: Utilize `SharedArrayBuffer` to cache and manage execution
+  state.
+- **Pooling**: Support for parallelization through an internal `Worker Pool` to
+  allow for true parallel task execution.
+- **WebAssembly (WASM) Support**: Integrate and interact with WASM modules
+  compiled from languages such as GoLang and Rust.
 
 **note** when compiling rust through `wasm bidgen` only `--target web` is known
 to be supported.
 
-_Under development, still largely a work in progress_ Should not be used in
-production.
+## Installation
+
+Install via Deno:
+
+```bash
+deno install -A -f https://deno.land/x/span/mod.ts
+```
+
+Install via JSR (for use with Deno)
+
+```bash
+deno add @joshlong145/span
+```
 
 ## Example JS
 
