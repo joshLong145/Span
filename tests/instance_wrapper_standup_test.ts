@@ -35,9 +35,19 @@ Deno.test("Worker Wrapper manager should be defined when started", () => {
   assertExists(wrapper["_wb"]);
 });
 
-Deno.test("Worker Wrapper manager should be defined when started", () => {
+Deno.test("Worker Wrapper manager should create correct number of workers", () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 1 });
+  wrapper.start();
+  inst.terminateWorker();
+  //@ts-ignore is defined
+  assertEquals(wrapper["_wm"]["_workers"].length, 1);
+});
+
+Deno.test("Worker Wrapper manager should default to 1 worker if not configured", () => {
+  const inst = new TestExample();
+  //@ts-ignore remove workerCount for test case
+  const wrapper = new InstanceWrapper<TestExample>(inst, {});
   wrapper.start();
   inst.terminateWorker();
   //@ts-ignore is defined
