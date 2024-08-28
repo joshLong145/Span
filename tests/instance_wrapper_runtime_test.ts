@@ -64,19 +64,19 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
   await wrapper.start();
 
-  await inst.execute("foo").promise.then((buf) => {
+  await inst.execute("foo", {}).promise.then((buf) => {
     assertEquals(new Uint32Array(buf!)[0], 1);
   });
 
-  await inst.execute("foo").promise.then((buf) => {
+  await inst.execute("foo", {}).promise.then((buf) => {
     assertEquals(new Uint32Array(buf!)[0], 2);
   });
 
-  await inst.execute("testAsync");
+  await inst.execute("testAsync", {}).promise;
 
   await assertRejects(
     () => {
-      const workerPrms = inst.execute("testInfiniteLoop");
+      const workerPrms = inst.execute("testInfiniteLoop", {});
 
       //@ts-ignore need to add types
       workerPrms.timeout(1_000);
@@ -108,7 +108,7 @@ Deno.test("Worker Wrapper Generated Promise should handle rejections", async () 
   const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
 
   await wrapper.start();
-  await inst.execute("testErrorCatch").promise.catch((err) => {
+  await inst.execute("testErrorCatch", {}).promise.catch((err) => {
     assertIsError(err);
   });
   inst.terminateWorker();
