@@ -88,16 +88,16 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
 
 wrapper.start();
 
-await example.execute("addOne", {name: 'foo'}).then((buf: SharedArrayBuffer) => {
+await example.execute("addOne", {name: 'foo'}).promise.then((buf: SharedArrayBuffer) => {
   console.log("add one result: ", new Int32Array(buf));
 });
-await example.execute("addOne", { name: "foo" }).then(
+await example.execute("addOne", { name: "foo" }).promise.then(
   (buf: SharedArrayBuffer) => {
     console.log("add one result ", new Int32Array(buf)[0]);
   },
 );
 
-await example.execute("fib", {count: 10}).then((buffer: SharedArrayBuffer) => {
+await example.execute("fib", {count: 10}).promise.then((buffer: SharedArrayBuffer) => {
   console.log('fib result ', new Uint8Array(buffer));
   console.log('last fib number', new Uint8Array(buffer)[10]);
 });
@@ -164,7 +164,7 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, 
 });
 
 wrapper.start();
-await example.execute('fib' {count: 10}).then((buffer: SharedArrayBuffer) => {
+await example.execute('fib' {count: 10}).promise.then((buffer: SharedArrayBuffer) => {
   console.log("final fib number", new Uint8Array(buffer)[10]);
 });
 
@@ -211,7 +211,7 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, 
 
 wrapper.start();
 
-await example.execute("addOne").then((buf: SharedArrayBuffer) => {
+await example.execute("addOne").promise.then((buf: SharedArrayBuffer) => {
     console.log("buffer returned ", new Int32Array(buf))
 });
 
