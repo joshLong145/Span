@@ -17,6 +17,7 @@ jobs:
     steps:
       - name: Install hyperfine
         run: sudo apt-get install -y hyperfine
+        if: runner.os == 'Linux' && always() 
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
       - name: Use Deno Version ${{ matrix.deno-version }}
