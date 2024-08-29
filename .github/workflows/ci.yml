@@ -8,10 +8,11 @@ on:
 
 jobs:
   publish:
+    needs: [test]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.41.2]
+        deno-version: [1.41.5]
     steps:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
