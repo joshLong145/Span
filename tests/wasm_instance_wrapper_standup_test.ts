@@ -2,6 +2,7 @@ import {
   assertEquals,
   assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
+import * as path from "jsr:@std/path";
 import { InstanceWrapper, WorkerDefinition } from "../src/InstanceWrapper.ts";
 import type { WorkerAny } from "../src/types.ts";
 
@@ -22,6 +23,7 @@ class TestExample extends WorkerDefinition {
 
 Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", () => {
   const example: TestExample = new TestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
@@ -31,7 +33,7 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
       outputPath: "output",
       namespace: "asd",
       addons: [
-        "./lib/wasm_exec_tiny.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
@@ -50,11 +52,12 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
   //@ts-ignore is defined
   assertExists(wrapper, wrapper["config"]);
   assertEquals(wrapper["_config"].namespace, "asd");
-  assertEquals(wrapper["_config"].addons, ["./lib/wasm_exec_tiny.js"]);
+  assertEquals(wrapper["_config"].addons, [wasmLibPath]);
 });
 
 Deno.test("Wasm class members should be defined", () => {
   const example: TestExample = new TestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
@@ -64,7 +67,7 @@ Deno.test("Wasm class members should be defined", () => {
       outputPath: "output",
       namespace: "asd",
       addons: [
-        "./lib/wasm_exec_tiny.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
@@ -87,6 +90,7 @@ Deno.test("Wasm class members should be defined", () => {
 
 Deno.test("Wasm class should have correct worker number on start", () => {
   const example: TestExample = new TestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
@@ -96,7 +100,7 @@ Deno.test("Wasm class should have correct worker number on start", () => {
       outputPath: "output",
       namespace: "asd",
       addons: [
-        "./lib/wasm_exec_tiny.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
@@ -120,6 +124,7 @@ Deno.test("Wasm class should have correct worker number on start", () => {
 
 Deno.test("Wasm class ", () => {
   const example: TestExample = new TestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
@@ -129,7 +134,7 @@ Deno.test("Wasm class ", () => {
       outputPath: "output",
       namespace: "asd",
       addons: [
-        "./lib/wasm_exec_tiny.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);

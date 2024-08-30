@@ -1,5 +1,15 @@
 {
   "version": "3",
+  "packages": {
+    "specifiers": {
+      "jsr:@std/path": "jsr:@std/path@1.0.3"
+    },
+    "jsr": {
+      "@std/path@1.0.3": {
+        "integrity": "cd89d014ce7eb3742f2147b990f6753ee51d95276bfc211bc50c860c1bc7df6f"
+      }
+    }
+  },
   "redirects": {
     "https://deno.land/std/fs/mod.ts": "https://deno.land/std@0.211.0/fs/mod.ts"
   },
