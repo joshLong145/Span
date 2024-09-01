@@ -3,8 +3,10 @@ import {
   assertExists,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 
+import * as path from "https://deno.land/std@0.224.0/path/mod.ts";
+
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
-import { WorkerAny } from "../src/types.ts";
+import type { WorkerAny } from "../src/types.ts";
 
 class GoTestExample extends WorkerDefinition {
   public constructor() {
@@ -66,6 +68,14 @@ class RustTestExample extends WorkerDefinition {
 
 Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", async () => {
   const example: GoTestExample = new GoTestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
+  const wasmModPath = path.join(
+    Deno.cwd(),
+    "examples",
+    "wasm",
+    "tiny-go",
+    "primes-2.wasm",
+  );
 
   const wrapper: InstanceWrapper<GoTestExample> = new InstanceWrapper<
     GoTestExample
@@ -73,12 +83,12 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
     example,
     {
       addons: [
-        "./lib/wasm_exec_tiny.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
-      modulePath: "./examples/wasm/tiny-go/primes-2.wasm",
+      modulePath: wasmModPath,
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
         const mod = Deno.readAllSync(fd);
@@ -112,6 +122,14 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
 
 Deno.test("WASM Worker method should correct pass arguments", async () => {
   const example: GoTestExample = new GoTestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
+  const wasmModPath = path.join(
+    Deno.cwd(),
+    "examples",
+    "wasm",
+    "tiny-go",
+    "primes-2.wasm",
+  );
 
   const wrapper: InstanceWrapper<GoTestExample> = new InstanceWrapper<
     GoTestExample
@@ -119,12 +137,12 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
     example,
     {
       addons: [
-        "./lib/wasm_exec_tiny.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
-      modulePath: "./examples/wasm/tiny-go/primes-2.wasm",
+      modulePath: wasmModPath,
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
         let mod = Deno.readAllSync(fd);
@@ -148,6 +166,14 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
 
 Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module", async () => {
   const example: RustTestExample = new RustTestExample();
+  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_test.js");
+  const wasmModPath = path.join(
+    Deno.cwd(),
+    "examples",
+    "wasm",
+    "rust",
+    "wasm_test_bg.wasm",
+  );
 
   const wrapper: InstanceWrapper<RustTestExample> = new InstanceWrapper<
     RustTestExample
@@ -155,12 +181,12 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
     example,
     {
       addons: [
-        "./lib/wasm_test.js",
+        wasmLibPath,
       ],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
-      modulePath: "./examples/wasm/rust/wasm_test_bg.wasm",
+      modulePath: wasmModPath,
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
         let source = Deno.readAllSync(fd);
