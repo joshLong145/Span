@@ -3,7 +3,7 @@ import {
   assertExists,
   assertRejects,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
-import * as path from "jsr:@std/path";
+import * as path from "https://deno.land/std@0.224.0/path/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import type { WorkerAny } from "../src/types.ts";
