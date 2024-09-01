@@ -12,7 +12,6 @@ on:
       - completed
 jobs:
   publish:
-    needs: [test]
     runs-on: ubuntu-latest
     strategy:
       matrix:
