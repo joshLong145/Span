@@ -13,15 +13,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        deno-version: [1.41.5]
     steps:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
       - name: Use Deno Version ${{ matrix.deno-version }}
         uses: denolib/setup-deno@v2
-        with:
-          deno-version: ${{ matrix.deno-version }}
       - name: Publish jsr
         run: deno publish
