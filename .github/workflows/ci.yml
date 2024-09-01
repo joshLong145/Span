@@ -5,6 +5,9 @@ permissions:
 on:
   push:
     branches: [master]
+  workflow_run: ["Test and Benchmark"]
+  types: 
+    - completed
 
 jobs:
   publish:
