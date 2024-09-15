@@ -17,7 +17,10 @@ jobs:
     steps:
       - name: Install hyperfine
         run: sudo apt-get install -y hyperfine
-        if: runner.os == 'Linux' && always() 
+        if: runner.os == 'Linux' && always()
+      - name: Install hyperfine
+        run: brew install hyperfine
+        if: runner.os == 'macOS' && always()
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
       - name: Use Deno Version ${{ matrix.deno-version }}
@@ -30,4 +33,4 @@ jobs:
       - name: Benchmark
         id: benchmark
         run: deno task bench
-        if: runner.os == 'Linux' && always()
+        if: runner.os == 'Linux' || runner.os == 'macOS' && always()
