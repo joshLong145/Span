@@ -34,3 +34,30 @@ jobs:
         id: benchmark
         run: deno task bench
         if: runner.os == 'Linux' || runner.os == 'macOS' && always()
+  test-canary:
+    strategy:
+      matrix:
+        deno-version: [2.0.0-rc.4]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true 
+    steps:
+      - name: Install hyperfine
+        run: sudo apt-get install -y hyperfine
+        if: runner.os == 'Linux' && always()
+      - name: Install hyperfine
+        run: brew install hyperfine
+        if: runner.os == 'macOS' && always()
+      - name: Git Checkout Deno Module
+        uses: actions/checkout@v2
+      - name: Use Deno Version ${{ matrix.deno-version }}
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ matrix.deno-version }}
+      - name: Unit Testing
+        id: test
+        run: deno task ok
+      - name: Benchmark
+        id: benchmark
+        run: deno task bench
+        if: runner.os == 'Linux' || runner.os == 'macOS' && always()
