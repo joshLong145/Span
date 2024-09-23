@@ -17,7 +17,7 @@ export class Pool {
 
   init = async (definition: string): Promise<void> => {
     for (let i = 0; i < this._args.workerCount; i++) {
-      this.threads.push(new WorkerHandler(definition, {}));
+      this.threads.push(new WorkerHandler(definition, {taskCount: this._args.taskCount}));
     }
     const isReady = () => {
       const ready = this.threads.filter((thread) => thread.isReady()).length ===

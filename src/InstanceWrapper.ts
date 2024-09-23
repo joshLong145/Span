@@ -164,6 +164,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       this._workerString,
       {
         workerCount: this._config.workerCount ?? 1,
+        taskCount: this._config.taskCount ?? 1,
       },
     );
   }

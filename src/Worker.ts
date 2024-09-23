@@ -62,7 +62,8 @@ export class WorkerHandler {
   }
 
   public isReady(): boolean {
+    const taskCount: number = this._args?.taskCount as number ?? 1;
     return this.state === STATES.IDLE ||
-      Object.keys(this._executionMap).length < 1;
+      Object.keys(this._executionMap).length < taskCount;
   }
 }

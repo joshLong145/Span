@@ -42,7 +42,13 @@ export interface InstanceConfiguration {
   /**
    * the maximum number of workers which should be created
    */
-  workerCount: number;
+  workerCount?: number;
+
+
+  /**
+   * the maximum number of tasks each worker can add to their queue
+   */
+  taskCount?: number;
 }
 
 export interface DiskIOProvider {
@@ -70,6 +76,7 @@ export type WorkerMessage = Task | { [key: string]: WorkerState };
 
 export declare interface PoolArgs {
   workerCount: number;
+  taskCount: number;
 }
 
 export declare interface TaskInfo {

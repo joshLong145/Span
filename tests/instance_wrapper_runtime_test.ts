@@ -3,7 +3,7 @@ import {
   assertIsError,
   assertRejects,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
-import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
+import { InstanceWrapper, ThreadState, WorkerDefinition } from "../src/mod.ts";
 
 class TestExample extends WorkerDefinition {
   public constructor() {
@@ -48,6 +48,7 @@ class TestExample extends WorkerDefinition {
     args.foo.bar();
     return buffer;
   };
+
 
   testInfiniteLoop = (
     buffer: SharedArrayBuffer,
@@ -112,4 +113,36 @@ Deno.test("Worker Wrapper Generated Promise should handle rejections", async () 
     assertIsError(err);
   });
   inst.terminateWorker();
+});
+
+
+
+Deno.test("Pooling should correctly route requests to workers with buffer allowance", async () => {
+  const inst = new TestExample();
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5, taskCount: 2 });
+
+  await wrapper.start();
+  const promises = [];
+  for (let i = 0; i < 6; i++) {
+    promises.push(inst.execute("testAsync", {}).promise);
+  }
+  
+  assertEquals(promises.length, 6);
+  console.log(inst.pool?.getThreadStates());
+  console.log(inst.pool?.getThreadStates());
+
+  for (let i = 0; i < inst.pool?.getThreadStates().length!; i++) {
+    if (i <= Math.ceil( 5 / 2) - 1) {
+      assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 2);
+    } else {
+      assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 0);
+    }
+  }
+
+  await Promise.all(promises);
+  for (let i = 0; i < inst.pool?.getThreadStates().length!; i++) {
+      assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 0);
+  }
+
+  await inst.terminateWorker();
 });

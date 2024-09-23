@@ -33,7 +33,7 @@ async function parallelKeygenTest(opCount: number, workerCount: number) {
   // Only measure time of execution. we Init shouldnt count ;)
 
   for (let i = 0; i < opCount; i++) {
-    example.execute("getKeyPair");
+    example.execute("getKeyPair", {});
   }
 
   while (
