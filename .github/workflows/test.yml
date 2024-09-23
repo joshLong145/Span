@@ -11,7 +11,7 @@ jobs:
   test:
     strategy:
       matrix:
-        deno-version: [1.39.1, 1.38.1, 1.41.3, 1.45.5, 1.46.3, 2.0.0-rc.1]
+        deno-version: [1.39.1, 1.38.1, 1.41.3, 1.45.5, 1.46.3, 2.0.0-rc.4]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}  
     steps:
@@ -24,7 +24,7 @@ jobs:
       - name: Git Checkout Deno Module
         uses: actions/checkout@v2
       - name: Use Deno Version ${{ matrix.deno-version }}
-        uses: denolib/setup-deno@v2
+        uses: denoland/setup-deno@v1
         with:
           deno-version: ${{ matrix.deno-version }}
       - name: Unit Testing
