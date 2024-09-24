@@ -1,7 +1,7 @@
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
-
+import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
 class TestExample extends WorkerDefinition {
   public constructor() {
     super();
@@ -40,7 +40,7 @@ Deno.bench("Wasm Worker Start Go Module loading", {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -74,7 +74,7 @@ Deno.bench("Wasm Worker Start Rust Module loading", {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -116,7 +116,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Rust", {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -162,7 +162,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Tiny Go", {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -208,7 +208,7 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Go", {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },

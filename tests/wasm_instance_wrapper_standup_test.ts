@@ -5,6 +5,7 @@ import {
 import * as path from "https://deno.land/std@0.224.0/path/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/InstanceWrapper.ts";
 import type { WorkerAny } from "../src/types.ts";
+import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
 
 class TestExample extends WorkerDefinition {
   public constructor() {
@@ -40,7 +41,7 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -74,7 +75,7 @@ Deno.test("Wasm class members should be defined", () => {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -107,7 +108,7 @@ Deno.test("Wasm class should have correct worker number on start", () => {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -141,7 +142,7 @@ Deno.test("Wasm class ", () => {
       },
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
