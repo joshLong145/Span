@@ -3,6 +3,7 @@ import {
   WorkerDefinition,
 } from "../../../src/InstanceWrapper.ts";
 import { WorkerAny } from "../../../src/mod.ts";
+import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
 
 class Example extends WorkerDefinition {
   public constructor() {
@@ -32,7 +33,7 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
     modulePath: "./examples/wasm/rust/wasm_test_bg.wasm",
     moduleLoader: (path: string) => {
       const fd = Deno.openSync(path);
-      return Deno.readAllSync(fd);
+      return readAllSync(fd);
     },
     workerCount: 1,
   },

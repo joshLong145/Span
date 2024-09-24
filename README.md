@@ -205,7 +205,8 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(example, 
     },
     moduleLoader: (path: string) => {
       const fd = Deno.openSync(path);
-      return Deno.readAllSync(fd);
+      //import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
+      return readAllSync(fd);
     },
 });
 

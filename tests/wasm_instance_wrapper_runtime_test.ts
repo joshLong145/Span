@@ -7,6 +7,7 @@ import * as path from "https://deno.land/std@0.224.0/path/mod.ts";
 
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import type { WorkerAny } from "../src/types.ts";
+import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
 
 class GoTestExample extends WorkerDefinition {
   public constructor() {
@@ -91,7 +92,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
       modulePath: wasmModPath,
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        const mod = Deno.readAllSync(fd);
+        const mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -145,7 +146,7 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
       modulePath: wasmModPath,
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let mod = Deno.readAllSync(fd);
+        let mod = readAllSync(fd);
         fd.close();
         return mod;
       },
@@ -189,7 +190,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
       modulePath: wasmModPath,
       moduleLoader: (path: string) => {
         const fd = Deno.openSync(path);
-        let source = Deno.readAllSync(fd);
+        let source = readAllSync(fd);
         fd.close();
         return source;
       },
