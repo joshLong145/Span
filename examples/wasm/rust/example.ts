@@ -3,7 +3,7 @@ import {
   WorkerDefinition,
 } from "../../../src/InstanceWrapper.ts";
 import { WorkerAny } from "../../../src/mod.ts";
-import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
+import { readAllSync } from "https://deno.land/std/io/read_all.ts";
 
 class Example extends WorkerDefinition {
   public constructor() {
@@ -25,15 +25,16 @@ const wrapper: InstanceWrapper<Example> = new InstanceWrapper<Example>(
   example,
   {
     addons: [
-      "./lib/wasm_test.js",
+      "lib/wasm_test.js",
     ],
     addonLoader: (path: string) => {
-      return Deno.readTextFileSync(path);
+      const fd = Deno.openSync(path);
+      return readAllSync(fd);
     },
     modulePath: "./examples/wasm/rust/wasm_test_bg.wasm",
     moduleLoader: (path: string) => {
       const fd = Deno.openSync(path);
-      return readAllSync(fd);
+      return new TextDecoder().decode(readAllSync(fd));
     },
     workerCount: 1,
   },

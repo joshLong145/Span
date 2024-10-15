@@ -36,6 +36,10 @@ self.setInterval(async () => {
       this._namespace != "" ? this._namespace : "span"
     }.tasks[task.id].reject();
       delete ${this._namespace != "" ? this._namespace : "span"}.tasks[task.id];
+      postMessage({
+      action: "TERM",
+      id: task.id,
+      });
     } else {
       let res, rej;
       ${

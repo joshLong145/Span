@@ -1,5 +1,6 @@
 import { STATES } from "./constants.ts";
 import type { Task, WorkerAny, WorkerMessage, WorkerState } from "./mod.ts";
+import { Pool } from "./Pool.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 
 // deno-lint-ignore-file no-explicit-any
@@ -12,10 +13,11 @@ export class WorkerHandler {
   // deno-lint-ignore no-explicit-any
   public worker: any;
   public state: string = STATES.BUSY;
-
+  public id: string;
   constructor(source: string, args: WorkerAny) {
     this._args = args;
     this.sourceDef = source;
+    this.id = Pool.uuidv4();
 
     const blob = new Blob(
       [source],
@@ -40,6 +42,16 @@ export class WorkerHandler {
       }
 
       const context = this._executionMap[workerTask.data.id];
+
+      if ((workerTask.data as Task).action === "TERM") {
+        context &&
+          context.reject(
+            new Error("Timeout has occured, aborting worker execution"),
+          );
+        delete this._executionMap[workerTask.data.id];
+        context.timer && clearTimeout(context.timer);
+        return;
+      }
 
       if (workerTask.data.error) {
         context &&

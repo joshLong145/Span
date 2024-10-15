@@ -1,7 +1,7 @@
 name: Test and Benchmark
 permissions:
   id-token: write # This is required for requesting the JWT
-  contents: read  # This is required for actions/checkout
+  contents: read # This is required for actions/checkout
 on:
   push:
     branches: [master, feat/**, ref/**, release-*]
@@ -13,7 +13,7 @@ jobs:
       matrix:
         deno-version: [1.39.1, 1.38.1, 1.41.3, 1.45.5, 1.46.3]
         os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}  
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Install hyperfine
         run: sudo apt-get install -y hyperfine
@@ -40,7 +40,7 @@ jobs:
         deno-version: [2.0.0-rc.4]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    continue-on-error: true 
+    continue-on-error: true
     steps:
       - name: Install hyperfine
         run: sudo apt-get install -y hyperfine

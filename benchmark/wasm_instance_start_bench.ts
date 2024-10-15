@@ -1,7 +1,7 @@
 import { InstanceWrapper, WorkerDefinition } from "../src/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
-import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
+import { readAllSync } from "https://deno.land/std/io/read_all.ts";
 class TestExample extends WorkerDefinition {
   public constructor() {
     super();

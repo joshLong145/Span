@@ -54,7 +54,7 @@ _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? n
   public async workerBootstrap(
     self: WorkerDefinition,
     bridgeStr: string,
-    poolArgs: PoolArgs = { workerCount: 5 },
+    poolArgs: PoolArgs = { workerCount: 5, taskCount: 1 },
   ): Promise<void> {
     const pool = new Pool(poolArgs);
     self.pool = pool;
