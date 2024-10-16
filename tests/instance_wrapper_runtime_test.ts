@@ -54,7 +54,6 @@ class TestExample extends WorkerDefinition {
     _args: Record<string, any>,
   ): SharedArrayBuffer => {
     while (true) {}
-    return buffer;
   };
 }
 
@@ -165,3 +164,30 @@ Deno.test("Timeout should kill worker if there is no response", async () => {
 
   assertEquals(inst.pool!.threads.length, 4);
 });
+
+
+
+Deno.test("Timeout should kill worker and Pool should create new worker on next execution call", async () => {
+  const inst = new TestExample();
+  const wrapper = new InstanceWrapper<TestExample>(inst, {
+    workerCount: 1,
+    taskCount: 1,
+  });
+
+  await wrapper.start();
+  try {
+    const task = inst.execute("testInfiniteLoop", {});
+    task.timeout(100);
+    await task;
+  } catch(e) {
+    // catch the timeout error
+  }
+  
+  assertEquals(inst.pool!.threads.length, 0);
+  
+  const task = inst.execute("foo", {});
+  const buffer = await task;
+
+  assertEquals(inst.pool!.threads.length, 1);
+});
+

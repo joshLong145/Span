@@ -10,12 +10,15 @@ export class Pool {
   private _waitLock: Promise<void> | undefined;
   // deno-lint-ignore no-explicit-any
   private _waitLockResolver: any | undefined;
+  private _definition: string | undefined;
 
   constructor(args: PoolArgs) {
     this._args = args;
   }
 
   init = async (definition: string): Promise<void> => {
+    this._definition = definition;
+
     for (let i = 0; i < this._args.workerCount; i++) {
       this.threads.push(
         new WorkerHandler(definition, { taskCount: this._args.taskCount }),
@@ -47,7 +50,15 @@ export class Pool {
       return t.isReady();
     });
     if (!thread) {
-      task.reject(new Error("Max pool queue reached"));
+      if (this.threads.length < this._args.workerCount) {
+        this.threads.push(
+          new WorkerHandler(this._definition!, {
+            taskCount: this._args.taskCount,
+          }),
+        );
+      } else {
+        task.reject(new Error("Max pool queue reached"));
+      }
     }
 
     this.tasks.push(task);

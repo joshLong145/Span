@@ -4,7 +4,7 @@ import { Pool } from "../src/Pool.ts";
 
 Deno.test("Pool should initalize with correct worker count", async () => {
   const poolSize = 10;
-  const pool = new Pool({ workerCount: poolSize });
+  const pool = new Pool({ workerCount: poolSize, taskCount: 10 });
   await pool.init("console.log('hello world from pool test');");
   assertEquals(pool.threads.length, poolSize);
 
