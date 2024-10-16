@@ -186,7 +186,7 @@ Deno.test("Timeout should kill worker and Pool should create new worker on next 
   assertEquals(inst.pool!.threads.length, 0);
   
   const task = inst.execute("foo", {});
-  const buffer = await task;
+  await task;
 
   assertEquals(inst.pool!.threads.length, 1);
 });
