@@ -22,29 +22,21 @@ export class WorkerManager {
     return `
 ${this._namespace != "" ? this._namespace : "span"}.execData = [];
 ${this._namespace != "" ? this._namespace : "span"}.tasks = {};
+const namespace = ${this._namespace != "" ? this._namespace : "span"};
+
 self.setInterval(async () => {
-  if (${
-      this._namespace != "" ? this._namespace : "span"
-    }.execData.length > 0 && ${
-      this._namespace != "" ? this._namespace : "span"
-    }.workerState === "READY") {
-    const task = ${
-      this._namespace != "" ? this._namespace : "span"
-    }.execData.shift();
+  if (namespace.execData.length > 0 && namespace.workerState === "READY") {
+    const task = namespace.execData.shift();
     if (task.action === 'TERM') {
-      ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id].reject();
-      delete ${this._namespace != "" ? this._namespace : "span"}.tasks[task.id];
+      namespace.tasks[task.id].reject(new Error("Worker terminating"));
+      delete namespace.tasks[task.id];
       postMessage({
       action: "TERM",
       id: task.id,
       });
     } else {
       let res, rej;
-      ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id] = new Promise<void>((resolve, reject) => {
+      namespace.tasks[task.id] = new Promise<void>((resolve, reject) => {
         res = resolve;
         rej = reject;
         try {
@@ -58,9 +50,7 @@ self.setInterval(async () => {
                 name: task.name,
                 buffer: task.buffer,
                 id: task.id,
-                state: ${
-      this._namespace != "" ? this._namespace : "span"
-    }.workerState,
+                state: namespace.workerState,
                 res: retVal
               });
             }).catch((err) => {
@@ -70,28 +60,20 @@ self.setInterval(async () => {
                 buffer: task.buffer,
                 id: task.id,
                 error: err.toString(),
-                state: ${
-      this._namespace != "" ? this._namespace : "span"
-    }.workerState,
+                state: namespace.workerState,
               });
             }).finally(() => {
-              delete ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id];
+              delete namespace.tasks[task.id];
             });
           } else {
             postMessage({
               name: task.name,
               buffer: task.buffer,
               id: task.id,
-              state: ${
-      this._namespace != "" ? this._namespace : "span"
-    }.workerState,
+              state: namespace.workerState,
               res
             });
-            delete ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id];
+            delete namespace.tasks[task.id];
           }
         } catch(e) {
           postMessage({
@@ -99,30 +81,20 @@ self.setInterval(async () => {
             buffer: task.buffer,
             id: task.id,
             error: e.toString(),
-            state: ${
-      this._namespace != "" ? this._namespace : "span"
-    }.workerState
+            state: namespace.workerState
           });
-          delete ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id];                
+          delete namespace.tasks[task.id];                
         }
       });
 
-      ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id].resolve = res;
-      ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id].reject = rej;
-      ${
-      this._namespace != "" ? this._namespace : "span"
-    }.tasks[task.id].catch((err) => {
-        err && postMessage({
+      namespace.tasks[task.id].resolve = res;
+      namespace.tasks[task.id].reject = rej;
+      namespace.tasks[task.id].catch((err) => {
+      err && postMessage({
           name: task.name,
           buffer: task.buffer,
           id: task.id,
-          state: ${this._namespace != "" ? this._namespace : "span"}.workerState
+          state: namespace.workerState
         });           
       });
     }
@@ -130,7 +102,7 @@ self.setInterval(async () => {
 }, 1);
 
 self.onmessage = (e) => {
-  ${this._namespace != "" ? this._namespace : "span"}.execData.push(e.data);
+  namespace.execData.push(e.data);
 };
 `;
   }
