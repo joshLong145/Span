@@ -37,7 +37,7 @@ export class Pool {
 
   findWorkerForId = (id: string): WorkerHandler | undefined => {
     for (let i = 0; i < this.threads.length; i++) {
-      if (this.threads[i]._executionMap[id]) {
+      if (Object.keys(this.threads[i]._executionMap).indexOf(id) > -1) {
         return this.threads[i];
       }
     }

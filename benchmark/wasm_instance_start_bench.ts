@@ -25,7 +25,13 @@ Deno.bench("Wasm Worker Start Go Module loading", {
 }, async (_b) => {
   const example = new TestExample();
   const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
-  const wasmModulePath = path.join(Deno.cwd(), "examples", "wasm", "tiny-go", "primes-2.wasm");
+  const wasmModulePath = path.join(
+    Deno.cwd(),
+    "examples",
+    "wasm",
+    "tiny-go",
+    "primes-2.wasm",
+  );
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
@@ -37,7 +43,7 @@ Deno.bench("Wasm Worker Start Go Module loading", {
       addons: [
         wasmLibPath,
       ],
-      modulePath: wasmModulePath, 
+      modulePath: wasmModulePath,
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
@@ -61,7 +67,13 @@ Deno.bench("Wasm Worker Start Rust Module loading", {
 }, async (_b) => {
   const example = new TestExample();
   const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_test.js");
-  const wasmModulePath = path.join(Deno.cwd(), "examples", "wasm", "rust", "wasm_test_bg.wasm");
+  const wasmModulePath = path.join(
+    Deno.cwd(),
+    "examples",
+    "wasm",
+    "rust",
+    "wasm_test_bg.wasm",
+  );
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
   >(
@@ -70,9 +82,9 @@ Deno.bench("Wasm Worker Start Rust Module loading", {
       outputPath: "output",
       namespace: "asd",
       addons: [
-       wasmLibPath 
+        wasmLibPath,
       ],
-      modulePath: wasmModulePath, 
+      modulePath: wasmModulePath,
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
@@ -95,7 +107,13 @@ Deno.bench("Wasm Worker Start Code Gen Bootstrapping Rust", {
   group: "imported initalization",
 }, async (_b) => {
   const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_test.js");
-  const wasmModulePath = path.join(Deno.cwd(), "examples", "wasm", "rust", "wasm_test_bg.wasm");
+  const wasmModulePath = path.join(
+    Deno.cwd(),
+    "examples",
+    "wasm",
+    "rust",
+    "wasm_test_bg.wasm",
+  );
   if (!existsSync("./public")) {
     Deno.mkdirSync("./public");
   }
