@@ -72,13 +72,13 @@ export class TaskPromise {
       value: SharedArrayBuffer,
     ) => SharedArrayBuffer | PromiseLike<SharedArrayBuffer>,
     onReject: (reason: unknown) => never | PromiseLike<never>,
-  ) {
+  ): Promise<SharedArrayBuffer> {
     return this.promise.then(onSuccess, onReject);
   }
 
   public catch(
     onReject: (reason: unknown) => never | PromiseLike<never>,
-  ) {
+  ): Promise<SharedArrayBuffer> {
     return this.promise.then(undefined, onReject);
   }
 
