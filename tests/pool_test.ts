@@ -29,4 +29,5 @@ Deno.test("Pool.removeWorker should remove correct worker and terminate", async 
     return w.id === workerId;
   });
   assertEquals(worker, undefined);
+  pool.terminate();
 });
