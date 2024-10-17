@@ -163,6 +163,7 @@ Deno.test("Timeout should kill worker if there is no response", async () => {
   }
 
   assertEquals(inst.pool!.threads.length, 4);
+  inst.terminateWorker();
 });
 
 Deno.test("Timeout should kill worker and Pool should create new worker on next execution call", async () => {
@@ -187,4 +188,6 @@ Deno.test("Timeout should kill worker and Pool should create new worker on next 
   await task;
 
   assertEquals(inst.pool!.threads.length, 1);
+
+  inst.terminateWorker();
 });
