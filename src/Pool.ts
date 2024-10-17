@@ -10,22 +10,28 @@ export class Pool {
   private _waitLock: Promise<void> | undefined;
   // deno-lint-ignore no-explicit-any
   private _waitLockResolver: any | undefined;
+  private _definition: string | undefined;
 
   constructor(args: PoolArgs) {
     this._args = args;
   }
 
   init = async (definition: string): Promise<void> => {
+    this._definition = definition;
+
     for (let i = 0; i < this._args.workerCount; i++) {
-      this.threads.push(new WorkerHandler(definition, {taskCount: this._args.taskCount}));
+      this.threads.push(
+        new WorkerHandler(definition, { taskCount: this._args.taskCount }),
+      );
     }
-    const isReady = () => {
-      const ready = this.threads.filter((thread) => thread.isReady()).length ===
-        this._args.workerCount;
-      return ready;
-    };
-    while (!isReady()) {
+
+    let ready = this.threads.filter((thread) => thread.isReady()).length ===
+      this._args.workerCount;
+    while (!ready) {
       await this._wait(10);
+      ready = this.threads.filter((thread) =>
+        thread.isReady()
+      ).length === this._args.workerCount;
     }
   };
 
@@ -44,8 +50,15 @@ export class Pool {
       return t.isReady();
     });
     if (!thread) {
-      //@ts-ignore is defined
-      task.reject(new Error("Max pool queue reached"));
+      if (this.threads.length < this._args.workerCount) {
+        this.threads.push(
+          new WorkerHandler(this._definition!, {
+            taskCount: this._args.taskCount,
+          }),
+        );
+      } else {
+        task.reject(new Error("Max pool queue reached"));
+      }
     }
 
     this.tasks.push(task);
@@ -67,6 +80,7 @@ export class Pool {
       return {
         state: t.state,
         tasks: tasks,
+        id: t.id,
       };
     });
   };
@@ -109,6 +123,23 @@ export class Pool {
     return new Promise<void>((res, _) => {
       setTimeout(res, ms);
     });
+  };
+
+  removeWorker = (id: string): void => {
+    let index = -1;
+    for (let i = 0; i < this.threads.length; i++) {
+      if (this.threads[i].id === id) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index > -1) {
+      this.threads[index].worker.terminate();
+      this.threads[index].worker = null;
+
+      this.threads.splice(index, 1);
+    }
   };
 
   /** */

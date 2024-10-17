@@ -44,7 +44,6 @@ export interface InstanceConfiguration {
    */
   workerCount?: number;
 
-
   /**
    * the maximum number of tasks each worker can add to their queue
    */
@@ -67,6 +66,7 @@ export declare interface Task {
   buffer: SharedArrayBuffer;
   id: number;
   args: AsJson<WorkerAny>;
+  action?: string;
   error?: string;
 }
 
@@ -87,6 +87,7 @@ export declare interface TaskInfo {
 export declare interface ThreadState {
   state: string;
   tasks: TaskInfo[];
+  id: string;
 }
 
 export interface WorkerAny {

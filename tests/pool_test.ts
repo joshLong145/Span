@@ -4,7 +4,7 @@ import { Pool } from "../src/Pool.ts";
 
 Deno.test("Pool should initalize with correct worker count", async () => {
   const poolSize = 10;
-  const pool = new Pool({ workerCount: poolSize });
+  const pool = new Pool({ workerCount: poolSize, taskCount: 10 });
   await pool.init("console.log('hello world from pool test');");
   assertEquals(pool.threads.length, poolSize);
 
@@ -15,5 +15,19 @@ Deno.test("Pool should initalize with correct worker count", async () => {
   const states = pool.getThreadStates();
   assertEquals(states.length, poolSize);
 
+  pool.terminate();
+});
+
+Deno.test("Pool.removeWorker should remove correct worker and terminate", async () => {
+  const poolSize = 10;
+  const pool = new Pool({ workerCount: poolSize, taskCount: 10 });
+  await pool.init("console.log('hello world from pool test');");
+  const workerId = pool.threads[0].id;
+  pool.removeWorker(workerId);
+  assertEquals(pool.threads.length, poolSize - 1);
+  const worker = pool.threads.find((w) => {
+    return w.id === workerId;
+  });
+  assertEquals(worker, undefined);
   pool.terminate();
 });

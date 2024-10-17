@@ -49,13 +49,11 @@ class TestExample extends WorkerDefinition {
     return buffer;
   };
 
-
   testInfiniteLoop = (
     buffer: SharedArrayBuffer,
     _args: Record<string, any>,
   ): SharedArrayBuffer => {
     while (true) {}
-    return buffer;
   };
 }
 
@@ -86,7 +84,7 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
       });
     },
     Error,
-    "Timeout has occured, aborting worker execution",
+    "Worker terminated",
   );
 
   inst.terminateWorker();
@@ -115,24 +113,24 @@ Deno.test("Worker Wrapper Generated Promise should handle rejections", async () 
   inst.terminateWorker();
 });
 
-
-
 Deno.test("Pooling should correctly route requests to workers with buffer allowance", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5, taskCount: 2 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, {
+    workerCount: 5,
+    taskCount: 2,
+  });
 
   await wrapper.start();
   const promises = [];
   for (let i = 0; i < 6; i++) {
-    promises.push(inst.execute("testAsync", {}).promise);
+    promises.push(inst.execute("testAsync", {}));
   }
-  
+
   assertEquals(promises.length, 6);
-  console.log(inst.pool?.getThreadStates());
   console.log(inst.pool?.getThreadStates());
 
   for (let i = 0; i < inst.pool?.getThreadStates().length!; i++) {
-    if (i <= Math.ceil( 5 / 2) - 1) {
+    if (i <= Math.ceil(5 / 2) - 1) {
       assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 2);
     } else {
       assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 0);
@@ -141,8 +139,55 @@ Deno.test("Pooling should correctly route requests to workers with buffer allowa
 
   await Promise.all(promises);
   for (let i = 0; i < inst.pool?.getThreadStates().length!; i++) {
-      assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 0);
+    assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 0);
   }
 
-  await inst.terminateWorker();
+  inst.terminateWorker();
+});
+
+Deno.test("Timeout should kill worker if there is no response", async () => {
+  const inst = new TestExample();
+  const wrapper = new InstanceWrapper<TestExample>(inst, {
+    workerCount: 5,
+    taskCount: 2,
+  });
+
+  await wrapper.start();
+
+  try {
+    const task = inst.execute("testInfiniteLoop", {});
+    task.timeout(50);
+    await task;
+  } catch (e) {
+    // catch the timeout error
+  }
+
+  assertEquals(inst.pool!.threads.length, 4);
+  inst.terminateWorker();
+});
+
+Deno.test("Timeout should kill worker and Pool should create new worker on next execution call", async () => {
+  const inst = new TestExample();
+  const wrapper = new InstanceWrapper<TestExample>(inst, {
+    workerCount: 1,
+    taskCount: 1,
+  });
+
+  await wrapper.start();
+  try {
+    const task = inst.execute("testInfiniteLoop", {});
+    task.timeout(100);
+    await task;
+  } catch (e) {
+    // catch the timeout error
+  }
+
+  assertEquals(inst.pool!.threads.length, 0);
+
+  const task = inst.execute("foo", {});
+  await task;
+
+  assertEquals(inst.pool!.threads.length, 1);
+
+  inst.terminateWorker();
 });

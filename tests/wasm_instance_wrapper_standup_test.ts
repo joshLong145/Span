@@ -5,7 +5,7 @@ import {
 import * as path from "https://deno.land/std@0.224.0/path/mod.ts";
 import { InstanceWrapper, WorkerDefinition } from "../src/InstanceWrapper.ts";
 import type { WorkerAny } from "../src/types.ts";
-import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
+import { readAllSync } from "https://deno.land/std/io/read_all.ts";
 
 class TestExample extends WorkerDefinition {
   public constructor() {

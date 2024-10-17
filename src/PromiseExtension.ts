@@ -1,7 +1,11 @@
 import type { Pool } from "./Pool.ts";
 import type { WorkerWrapper } from "./WorkerWrapper.ts";
 import type { WorkerAny, WorkerDefinition } from "./mod.ts";
-import type { WorkerPromiseGeneratorNamed } from "./types.ts";
+import type {
+  TaskInfo,
+  ThreadState,
+  WorkerPromiseGeneratorNamed,
+} from "./types.ts";
 
 export function buildPromiseExtension(
   id: string,
@@ -36,6 +40,7 @@ export class TaskPromise {
   public name: string;
 
   public promise: Promise<SharedArrayBuffer>;
+  public timer: number | undefined;
 
   constructor(
     id: string,
@@ -60,6 +65,21 @@ export class TaskPromise {
     this.buffer = buffer;
     this.pool = pool;
     this.name = name;
+  }
+
+  public then(
+    onSuccess: (
+      value: SharedArrayBuffer,
+    ) => SharedArrayBuffer | PromiseLike<SharedArrayBuffer>,
+    onReject: (reason: unknown) => never | PromiseLike<never>,
+  ) {
+    return this.promise.then(onSuccess, onReject);
+  }
+
+  public catch(
+    onReject: (reason: unknown) => never | PromiseLike<never>,
+  ) {
+    return this.promise.then(undefined, onReject);
   }
 
   get resolve(): (value: SharedArrayBuffer) => void {
@@ -89,8 +109,20 @@ export class TaskPromise {
       action: "TERM",
     });
 
-    this.reject && this.reject(
-      new Error("Timeout has occured, aborting worker execution"),
-    );
+    const timer = setTimeout(() => {
+      const threadId = this.pool!.getThreadStates().find(
+        (state: ThreadState) => {
+          const taskId = state.tasks.find((task: TaskInfo) => {
+            return task.id === this.id;
+          })?.id;
+
+          return taskId === this.id;
+        },
+      );
+      threadId && this.pool.removeWorker(threadId.id);
+      this.reject(new Error("Worker terminated"));
+    }, 1_000);
+
+    this.timer = timer;
   }
 }

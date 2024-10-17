@@ -3,7 +3,7 @@ import {
   WorkerDefinition,
 } from "../../../src/InstanceWrapper.ts";
 import type { WorkerAny } from "../../../src/types.ts";
-import { readAllSync } from 'https://deno.land/std/io/read_all.ts';
+import { readAllSync } from "https://deno.land/std/io/read_all.ts";
 
 class Example extends WorkerDefinition {
   public constructor() {
