@@ -165,8 +165,6 @@ Deno.test("Timeout should kill worker if there is no response", async () => {
   assertEquals(inst.pool!.threads.length, 4);
 });
 
-
-
 Deno.test("Timeout should kill worker and Pool should create new worker on next execution call", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
@@ -179,15 +177,14 @@ Deno.test("Timeout should kill worker and Pool should create new worker on next 
     const task = inst.execute("testInfiniteLoop", {});
     task.timeout(100);
     await task;
-  } catch(e) {
+  } catch (e) {
     // catch the timeout error
   }
-  
+
   assertEquals(inst.pool!.threads.length, 0);
-  
+
   const task = inst.execute("foo", {});
   await task;
 
   assertEquals(inst.pool!.threads.length, 1);
 });
-

@@ -17,3 +17,16 @@ Deno.test("Pool should initalize with correct worker count", async () => {
 
   pool.terminate();
 });
+
+Deno.test("Pool.removeWorker should remove correct worker and terminate", async () => {
+  const poolSize = 10;
+  const pool = new Pool({ workerCount: poolSize, taskCount: 10 });
+  await pool.init("console.log('hello world from pool test');");
+  const workerId = pool.threads[0].id;
+  pool.removeWorker(workerId);
+  assertEquals(pool.threads.length, poolSize - 1);
+  const worker = pool.threads.find((w) => {
+    return w.id === workerId;
+  });
+  assertEquals(worker, undefined);
+});
