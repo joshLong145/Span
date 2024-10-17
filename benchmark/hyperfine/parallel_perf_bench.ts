@@ -31,18 +31,13 @@ async function parallelKeygenTest(opCount: number, workerCount: number) {
   });
   await wrapper.start();
   // Only measure time of execution. we Init shouldnt count ;)
-
+  
+  const promises = [];
   for (let i = 0; i < opCount; i++) {
-    example.execute("getKeyPair", {});
+    promises.push(example.execute("getKeyPair", {}));
   }
 
-  while (
-    example.pool?.getThreadStates().find((s) => s.tasks.length > 0)
-  ) {
-    // just wait for the results of the pool
-    await new Promise((res) => setTimeout(res, 1));
-  }
-
+  await Promise.all(promises);
   example.terminateWorker();
 }
 
