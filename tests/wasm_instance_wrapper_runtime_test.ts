@@ -67,25 +67,23 @@ class RustTestExample extends WorkerDefinition {
   };
 }
 
-Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", async () => {
-  const example: GoTestExample = new GoTestExample();
-  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
-  const wasmModPath = path.join(
-    Deno.cwd(),
-    "examples",
-    "wasm",
-    "tiny-go",
-    "primes-2.wasm",
-  );
+Deno.test(
+  "WASM Worker Should have wasm methods loaded from GoLang module",
+  async () => {
+    const example: GoTestExample = new GoTestExample();
+    const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
+    const wasmModPath = path.join(
+      Deno.cwd(),
+      "examples",
+      "wasm",
+      "tiny-go",
+      "primes-2.wasm",
+    );
 
-  const wrapper: InstanceWrapper<GoTestExample> = new InstanceWrapper<
-    GoTestExample
-  >(
-    example,
-    {
-      addons: [
-        wasmLibPath,
-      ],
+    const wrapper: InstanceWrapper<GoTestExample> = new InstanceWrapper<
+      GoTestExample
+    >(example, {
+      addons: [wasmLibPath],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
@@ -97,29 +95,29 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
         return mod;
       },
       workerCount: 5,
-    },
-  );
+    });
 
-  await wrapper.start();
+    await wrapper.start();
 
-  await example.execute("testBuffer", {}).promise.then(
-    (buf: SharedArrayBuffer) => {
-      assertEquals(new Uint32Array(buf)[0], 1);
-    },
-  );
-  await example.execute("testBuffer", {}).promise.then(
-    (buf: SharedArrayBuffer) => {
-      assertEquals(new Uint32Array(buf)[0], 2);
-    },
-  );
+    await example
+      .execute("testBuffer", {})
+      .promise.then((buf: SharedArrayBuffer) => {
+        assertEquals(new Uint32Array(buf)[0], 1);
+      });
+    await example
+      .execute("testBuffer", {})
+      .promise.then((buf: SharedArrayBuffer) => {
+        assertEquals(new Uint32Array(buf)[0], 2);
+      });
 
-  await example.execute("testParams", { foo: "bar" }).promise.then(
-    (buf: SharedArrayBuffer) => {
-      assertExists(new Uint32Array(buf)[0]);
-      example.terminateWorker();
-    },
-  );
-});
+    await example
+      .execute("testParams", { foo: "bar" })
+      .promise.then((buf: SharedArrayBuffer) => {
+        assertExists(new Uint32Array(buf)[0]);
+        wrapper.terminateWorker();
+      });
+  },
+);
 
 Deno.test("WASM Worker method should correct pass arguments", async () => {
   const example: GoTestExample = new GoTestExample();
@@ -134,56 +132,49 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
 
   const wrapper: InstanceWrapper<GoTestExample> = new InstanceWrapper<
     GoTestExample
-  >(
-    example,
-    {
-      addons: [
-        wasmLibPath,
-      ],
-      addonLoader: (path: string) => {
-        return Deno.readTextFileSync(path);
-      },
-      modulePath: wasmModPath,
-      moduleLoader: (path: string) => {
-        const fd = Deno.openSync(path);
-        let mod = readAllSync(fd);
-        fd.close();
-        return mod;
-      },
-      workerCount: 5,
+  >(example, {
+    addons: [wasmLibPath],
+    addonLoader: (path: string) => {
+      return Deno.readTextFileSync(path);
     },
-  );
+    modulePath: wasmModPath,
+    moduleLoader: (path: string) => {
+      const fd = Deno.openSync(path);
+      let mod = readAllSync(fd);
+      fd.close();
+      return mod;
+    },
+    workerCount: 5,
+  });
 
   await wrapper.start();
 
-  await example.execute("testParams", { foo: "bar" }).promise.then(
-    (buf: SharedArrayBuffer) => {
+  await example
+    .execute("testParams", { foo: "bar" })
+    .promise.then((buf: SharedArrayBuffer) => {
       assertExists(new Uint32Array(buf)[0]);
-      example.terminateWorker();
-    },
-  );
+      wrapper.terminateWorker();
+    });
   example.terminateWorker();
 });
 
-Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module", async () => {
-  const example: RustTestExample = new RustTestExample();
-  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_test.js");
-  const wasmModPath = path.join(
-    Deno.cwd(),
-    "examples",
-    "wasm",
-    "rust",
-    "wasm_test_bg.wasm",
-  );
+Deno.test(
+  "WASM Worker Should have wasm methods loaded from Rust compiled module",
+  async () => {
+    const example: RustTestExample = new RustTestExample();
+    const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_test.js");
+    const wasmModPath = path.join(
+      Deno.cwd(),
+      "examples",
+      "wasm",
+      "rust",
+      "wasm_test_bg.wasm",
+    );
 
-  const wrapper: InstanceWrapper<RustTestExample> = new InstanceWrapper<
-    RustTestExample
-  >(
-    example,
-    {
-      addons: [
-        wasmLibPath,
-      ],
+    const wrapper: InstanceWrapper<RustTestExample> = new InstanceWrapper<
+      RustTestExample
+    >(example, {
+      addons: [wasmLibPath],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
@@ -195,14 +186,14 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
         return source;
       },
       workerCount: 5,
-    },
-  );
+    });
 
-  await wrapper.start();
-  await example.execute("test2", {}).promise.then(
-    (buffer: SharedArrayBuffer) => {
-      assertExists(new Uint32Array(buffer)[0]);
-    },
-  );
-  example.terminateWorker();
-});
+    await wrapper.start();
+    await example
+      .execute("test2", {})
+      .promise.then((buffer: SharedArrayBuffer) => {
+        assertExists(new Uint32Array(buffer)[0]);
+      });
+    wrapper.terminateWorker();
+  },
+);

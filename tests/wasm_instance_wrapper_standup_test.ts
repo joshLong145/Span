@@ -22,20 +22,18 @@ class TestExample extends WorkerDefinition {
   };
 }
 
-Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", () => {
-  const example: TestExample = new TestExample();
-  const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
+Deno.test(
+  "Wasm Worker Wrapper manager should have config correctly defnined",
+  () => {
+    const example: TestExample = new TestExample();
+    const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
-  const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
-    TestExample
-  >(
-    example,
-    {
+    const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
+      TestExample
+    >(example, {
       outputPath: "output",
       namespace: "asd",
-      addons: [
-        wasmLibPath,
-      ],
+      addons: [wasmLibPath],
       addonLoader: (path: string) => {
         return Deno.readTextFileSync(path);
       },
@@ -46,15 +44,15 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
         return mod;
       },
       workerCount: 5,
-    },
-  );
+    });
 
-  example.terminateWorker();
-  //@ts-ignore is defined
-  assertExists(wrapper, wrapper["config"]);
-  assertEquals(wrapper["_config"].namespace, "asd");
-  assertEquals(wrapper["_config"].addons, [wasmLibPath]);
-});
+    example.terminateWorker();
+    //@ts-ignore is defined
+    assertExists(wrapper, wrapper["config"]);
+    assertEquals(wrapper["_config"].namespace, "asd");
+    assertEquals(wrapper["_config"].addons, [wasmLibPath]);
+  },
+);
 
 Deno.test("Wasm class members should be defined", () => {
   const example: TestExample = new TestExample();
@@ -62,26 +60,21 @@ Deno.test("Wasm class members should be defined", () => {
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
-  >(
-    example,
-    {
-      outputPath: "output",
-      namespace: "asd",
-      addons: [
-        wasmLibPath,
-      ],
-      addonLoader: (path: string) => {
-        return Deno.readTextFileSync(path);
-      },
-      moduleLoader: (path: string) => {
-        const fd = Deno.openSync(path);
-        const mod = readAllSync(fd);
-        fd.close();
-        return mod;
-      },
-      workerCount: 5,
+  >(example, {
+    outputPath: "output",
+    namespace: "asd",
+    addons: [wasmLibPath],
+    addonLoader: (path: string) => {
+      return Deno.readTextFileSync(path);
     },
-  );
+    moduleLoader: (path: string) => {
+      const fd = Deno.openSync(path);
+      const mod = readAllSync(fd);
+      fd.close();
+      return mod;
+    },
+    workerCount: 5,
+  });
 
   example.terminateWorker();
   assertExists(wrapper["_instance"]);
@@ -95,29 +88,24 @@ Deno.test("Wasm class should have correct worker number on start", () => {
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
-  >(
-    example,
-    {
-      outputPath: "output",
-      namespace: "asd",
-      addons: [
-        wasmLibPath,
-      ],
-      addonLoader: (path: string) => {
-        return Deno.readTextFileSync(path);
-      },
-      moduleLoader: (path: string) => {
-        const fd = Deno.openSync(path);
-        const mod = readAllSync(fd);
-        fd.close();
-        return mod;
-      },
-      workerCount: 5,
+  >(example, {
+    outputPath: "output",
+    namespace: "asd",
+    addons: [wasmLibPath],
+    addonLoader: (path: string) => {
+      return Deno.readTextFileSync(path);
     },
-  );
+    moduleLoader: (path: string) => {
+      const fd = Deno.openSync(path);
+      const mod = readAllSync(fd);
+      fd.close();
+      return mod;
+    },
+    workerCount: 5,
+  });
 
   wrapper.start();
-  example.terminateWorker();
+  wrapper.terminateWorker();
 
   //@ts-ignore private members defined
   assertEquals(wrapper["_wm"]["_workers"].length, 1);
@@ -129,29 +117,24 @@ Deno.test("Wasm class ", () => {
 
   const wrapper: InstanceWrapper<TestExample> = new InstanceWrapper<
     TestExample
-  >(
-    example,
-    {
-      outputPath: "output",
-      namespace: "asd",
-      addons: [
-        wasmLibPath,
-      ],
-      addonLoader: (path: string) => {
-        return Deno.readTextFileSync(path);
-      },
-      moduleLoader: (path: string) => {
-        const fd = Deno.openSync(path);
-        const mod = readAllSync(fd);
-        fd.close();
-        return mod;
-      },
-      workerCount: 5,
+  >(example, {
+    outputPath: "output",
+    namespace: "asd",
+    addons: [wasmLibPath],
+    addonLoader: (path: string) => {
+      return Deno.readTextFileSync(path);
     },
-  );
+    moduleLoader: (path: string) => {
+      const fd = Deno.openSync(path);
+      const mod = readAllSync(fd);
+      fd.close();
+      return mod;
+    },
+    workerCount: 5,
+  });
 
   wrapper.start();
-  example.terminateWorker();
+  wrapper.terminateWorker();
 
   //@ts-ignore private members defined
   assertEquals(wrapper["_wm"]["_workers"].length, 1);

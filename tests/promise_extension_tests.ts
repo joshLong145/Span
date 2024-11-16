@@ -65,28 +65,28 @@ Deno.test("Promise should resolve and return array buffer", async () => {
 
   assertEquals(typeof buf, "object");
   assertExists(buf.byteLength);
-  await inst.terminateWorker();
+  wrapper.terminateWorker();
 });
 
-Deno.test("Promise should reject and throw error on timeout when infinite loop occures", async () => {
-  const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
-    taskCount: 2,
-  });
-  await wrapper.start();
-  try {
-    const promise = inst.execute("forever", {});
-    promise.timeout(100);
+Deno.test(
+  "Promise should reject and throw error on timeout when infinite loop occures",
+  async () => {
+    const inst = new TestExample();
+    const wrapper = new InstanceWrapper<TestExample>(inst, {
+      workerCount: 5,
+      taskCount: 2,
+    });
+    await wrapper.start();
+    try {
+      const promise = inst.execute("forever", {});
+      promise.timeout(100);
 
-    await promise;
-  } catch (err: unknown) {
-    assertEquals(typeof err, "object");
-    assertEquals(
-      (err as Error).message,
-      "Worker terminated",
-    );
-  } finally {
-    await inst.terminateWorker();
-  }
-});
+      await promise;
+    } catch (err: unknown) {
+      assertEquals(typeof err, "object");
+      assertEquals((err as Error).message, "Worker terminated");
+    } finally {
+      inst.terminateWorker();
+    }
+  },
+);
