@@ -1,5 +1,5 @@
 import { WorkerAny } from "./mod.ts";
-import type { Pool } from "./Pool.ts";
+import { Pool } from "./Pool.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 
 import type { AsJson, DiskIOProvider, InstanceConfiguration } from "./types.ts";
@@ -126,10 +126,15 @@ export class InstanceWrapper<T extends WorkerDefinition> {
   private _wm: WorkerManager | undefined;
   private _wb: WorkerBridge | undefined;
   private _workerString = "";
+  private _pool: Pool;
 
   constructor(instance: T, config: InstanceConfiguration) {
     this._instance = instance;
     this._config = config;
+    this._pool = new Pool({
+      workerCount: this._config.workerCount ?? 1,
+      taskCount: this._config.taskCount ?? 1,
+    });
     this._generate();
   }
 
@@ -147,8 +152,10 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       (this._instance as WorkerDefinition).execMap[w._name] = w;
     }
 
-    this._workerString = this._workerString + "\n" +
-      this?._wm?.CreateWorkerMap() + "\n" +
+    this._workerString = this._workerString +
+      "\n" +
+      this?._wm?.CreateWorkerMap() +
+      "\n" +
       this?._wm?.CreateOnMessageHandler();
 
     // tell the host we can start as this is done in the wasm instance wrapper
@@ -159,14 +166,23 @@ export class InstanceWrapper<T extends WorkerDefinition> {
         this._config.namespace != undefined ? this._config.namespace : "span"
       }.workerState = "READY";`;
 
-    await this?._wb?.workerBootstrap(
-      this._instance as T,
-      this._workerString,
-      {
-        workerCount: this._config.workerCount ?? 1,
-        taskCount: this._config.taskCount ?? 1,
-      },
-    );
+    await this._pool.init(this._workerString);
+    this._instance.pool = this._pool;
+  }
+
+  /**
+   * Run implemented methods from within the worker instance
+   *
+   * example: await workerDefintion.execute('foo', {bar: true});
+   * @param {keyof} name of method impleemnted on this class
+   * @param {Record<string,any>} args to pass to the method
+   * @returns {SharedArrayBuffer}
+   */
+  public execute(
+    name: Exclude<keyof this, keyof WorkerDefinition>,
+    args: AsJson<WorkerAny> & WorkerAny,
+  ): TaskPromise {
+    return this._instance.execMap[name as unknown as string](args);
   }
 
   /**
@@ -177,10 +193,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
       throw new Error("Must call start before restart, Aborting operation");
     }
 
-    await this?._wb?.workerBootstrap(
-      this._instance as T,
-      this._workerString,
-    );
+    await this.start();
   }
 
   /**
@@ -202,31 +215,40 @@ export class InstanceWrapper<T extends WorkerDefinition> {
 
     provider.writeFileSync(
       this._config.outputPath + "/bridge.js",
-      enc.encode(
-        `${this?._wb?.createBridge(worker)}`,
-      ),
+      enc.encode(`${this?._wb?.createBridge(worker)}`),
     );
   }
 
   private _generate(): void {
-    const protoKeys = Reflect.ownKeys(
-      Object.getPrototypeOf(this._instance),
-    ) as [keyof T];
-    const baseKeys = Object.keys(this._instance) as [keyof T];
-    const allKeys = baseKeys.concat(protoKeys).filter((key) => {
-      return key !== "constructor" && key !== "execMap" &&
-        key !== "bufferMap" &&
-        key !== "pool" && key !== "worker" &&
-        key !== "ModulePath" && key !== "workerString";
-    });
-    const wrps: WorkerWrapper[] = [];
-    for (const key of allKeys) {
-      wrps.push(new WorkerWrapper(this._instance[key] as WorkerMethod));
+    // Create Set for O(1) lookup of excluded keys
+    const excludedKeys = new Set([
+      "constructor",
+      "execMap",
+      "bufferMap",
+      "pool",
+      "worker",
+      "ModulePath",
+      "workerString",
+    ]);
+
+    // Combine keys in single iteration to avoid multiple array operations
+    const keys = Array.from(
+      new Set([
+        ...Object.keys(this._instance),
+        ...Reflect.ownKeys(Object.getPrototypeOf(this._instance)),
+      ]),
+    ).filter((key) => !excludedKeys.has(key as string)) as Array<keyof T>;
+
+    const wrappers = new Array(keys.length);
+
+    // Single-pass iteration without intermediate arrays
+    for (let i = 0; i < keys.length; i++) {
+      wrappers[i] = new WorkerWrapper(this._instance[keys[i]] as WorkerMethod);
     }
 
-    this._wm = new WorkerManager(wrps, this._config.namespace ?? "");
+    this._wm = new WorkerManager(wrappers, this._config.namespace ?? "");
     this._wb = new WorkerBridge({
-      workers: wrps,
+      workers: wrappers,
       namespace: this._config?.namespace as string,
       modulePath: this._config?.modulePath ?? "",
     });
@@ -244,10 +266,10 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
     }
     this._workerString += execFd;
     this._config.modulePath
-      ? this._workerString += this._genWebAssemblyBinding()
-      : this._workerString += `postMessage({ready: true}); ${
+      ? (this._workerString += this._genWebAssemblyBinding())
+      : (this._workerString += `postMessage({ready: true}); ${
         this._config.namespace ?? "span"
-      }.workerState = "READY";`;
+      }.workerState = "READY";`);
   }
 
   private _genWebAssemblyBinding(): string {
@@ -292,7 +314,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           initSync && initSync(uint8);
           for (const key of Object.keys(wasm)){
             self[key] = wasm[key];
-          } 
+          }
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
             ready: true
@@ -313,5 +335,18 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
         }
       }
     `;
+  }
+
+  /**
+   * Calls terminate on the worker instace
+   */
+  public terminateWorker() {
+    if (!this._pool) {
+      return;
+    }
+
+    for (let i = 0; i < this._pool.threads.length; i++) {
+      this._pool.threads[i].worker.terminate();
+    }
   }
 }

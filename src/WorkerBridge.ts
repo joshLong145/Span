@@ -37,29 +37,12 @@ export class WorkerBridge {
 
     for (const worker of this._workers) {
       root += `
-// this buffer size should be a config option, 
+// this buffer size should be a config option,
 _bufferMap["${worker.WorkerName}"] = typeof SharedArrayBuffer != "undefined" ? new SharedArrayBuffer(1024) : new Uint8Array();\n
             `;
     }
 
     return root;
-  }
-
-  /**
-   * MAKE THIS INTO AN ASYNC FUNCTION WAITING ON THE READY state of the worker for standup to continue
-   *
-   * @param self
-   * @param bridgeStr
-   */
-  public async workerBootstrap(
-    self: WorkerDefinition,
-    bridgeStr: string,
-    poolArgs: PoolArgs = { workerCount: 5, taskCount: 1 },
-  ): Promise<void> {
-    const pool = new Pool(poolArgs);
-    self.pool = pool;
-
-    await pool.init(bridgeStr);
   }
 
   private _workerBootstrap(worker: string): string {
@@ -74,7 +57,7 @@ const STATES = ${JSON.stringify(STATES)};
 ${Pool.toString()}
 ${TaskPromise.toString()}
 ${WorkerHandler.toString()}
-let workerStr = [${workerArr.toString()}];         
+let workerStr = [${workerArr.toString()}];
 const pool = new Pool({workerCount: 5});
 await pool.init(new TextDecoder().decode(new Uint8Array(workerStr)));
 `;
@@ -133,7 +116,7 @@ for (const key of Object.keys(${this._namespace ?? "span"})) {
       this._namespace ?? "span"
     }[key];
   self[key] = ${this._namespace ?? "span"}[key];
-  
+
 }
 self['pool'] = pool;
 `;

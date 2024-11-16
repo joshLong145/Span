@@ -1,5 +1,11 @@
 import { STATES } from "./constants.ts";
-import type { Task, WorkerAny, WorkerMessage, WorkerState } from "./mod.ts";
+import type {
+  Task,
+  ThreadState,
+  WorkerAny,
+  WorkerMessage,
+  WorkerState,
+} from "./mod.ts";
 import { Pool } from "./Pool.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 
@@ -19,10 +25,7 @@ export class WorkerHandler {
     this.sourceDef = source;
     this.id = Pool.uuidv4();
 
-    const blob = new Blob(
-      [source],
-      { type: "application/typescript" },
-    );
+    const blob = new Blob([source], { type: "application/typescript" });
 
     this.worker = new Worker(URL.createObjectURL(blob), {
       //@ts-ignore: deno flag
@@ -50,6 +53,7 @@ export class WorkerHandler {
           );
         delete this._executionMap[workerTask.data.id];
         context.timer && clearTimeout(context.timer);
+        context && context.reject(new Error("Timeout occured"));
         return;
       }
 
@@ -73,9 +77,24 @@ export class WorkerHandler {
     };
   }
 
+  public get State(): WorkerState {
+    let state: WorkerState = STATES.BUSY;
+    if (this.isReady()) {
+      if (Object.keys(this._executionMap).length < this._args.taskCount ?? 1) {
+        state = STATES.READY;
+      }
+    } else {
+      state = STATES.BUSY;
+    }
+
+    return state;
+  }
+
   public isReady(): boolean {
-    const taskCount: number = this._args?.taskCount as number ?? 1;
-    return this.state === STATES.IDLE ||
-      Object.keys(this._executionMap).length < taskCount;
+    const taskCount: number = (this._args?.taskCount as number) ?? 1;
+    return (
+      this.state === STATES.IDLE ||
+      Object.keys(this._executionMap).length < taskCount
+    );
   }
 }

@@ -57,6 +57,7 @@ export interface DiskIOProvider {
 export declare type WorkerPromiseGenerator = (
   args: WorkerAny,
 ) => TaskPromise;
+
 export declare type WorkerPromiseGeneratorNamed =
   & { _name: string }
   & WorkerPromiseGenerator;

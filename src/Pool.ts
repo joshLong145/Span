@@ -1,6 +1,6 @@
 import { STATES } from "./constants.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
-import type { PoolArgs, TaskInfo, ThreadState } from "./types.ts";
+import type { PoolArgs, TaskInfo, ThreadState, WorkerState } from "./types.ts";
 import { WorkerHandler } from "./Worker.ts";
 
 export class Pool {
@@ -77,8 +77,10 @@ export class Pool {
           args: t._executionMap[taskId]?.args,
         });
       }
+
+      const state: WorkerState = t.State;
       return {
-        state: t.state,
+        state: state,
         tasks: tasks,
         id: t.id,
       };
