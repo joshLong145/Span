@@ -71,6 +71,10 @@ export class WorkerHandler {
 
       if (Object.keys(this._executionMap).length === 0) {
         this.state = STATES.IDLE;
+      } else if (
+        Object.keys(this._executionMap).length < this._args.taskCount
+      ) {
+        this.state = STATES.READY;
       } else {
         this.state = STATES.BUSY;
       }
