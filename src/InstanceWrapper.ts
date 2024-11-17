@@ -301,9 +301,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           // tell the host that we can start
           self.mod && self.mod.run(module.instance);
           self.module = module;
-          for (const key of Object.keys(self.module.instance.exports)) {
-            self[key] = self.module.instance.exports[key];
-          }
+          Object.assign(self, module);
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
             ready: true
@@ -312,9 +310,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
       } else {
         if(typeof wasm_bindgen === "undefined") {
           initSync && initSync(uint8);
-          for (const key of Object.keys(wasm)){
-            self[key] = wasm[key];
-          }
+          Object.assign(self, wasm);
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
             ready: true
@@ -323,10 +319,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           wasm_bindgen && ((module) =>{
             self.module = module;
             self.module.initSync(uint8);
-            for (const key of Object.keys(self.module)) {
-              self[key] = self.module[key];
-            }
-
+            Object.assign(self, module);
             ${this._config.namespace ?? "span"}.workerState = "READY";
             postMessage({
               ready: true
