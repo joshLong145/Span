@@ -127,7 +127,6 @@ Deno.test("Pooling should correctly route requests to workers with buffer allowa
   }
 
   assertEquals(promises.length, 6);
-  console.log(inst.pool?.getThreadStates());
 
   for (let i = 0; i < inst.pool?.getThreadStates().length!; i++) {
     if (i <= Math.ceil(5 / 2) - 1) {
