@@ -4,8 +4,7 @@
     "fmt": "deno fmt",
     "bench": "deno bench benchmark/ --unstable --no-check --allow-all && cd benchmark/hyperfine && ./run.sh",
     "test": "deno test -A --parallel --no-check",
-    "ok": "deno fmt && deno task test --coverage=.coverage && deno coverage --exclude=test --exclude=benchmark --exclude=public .coverage",
-    "gen-npm": "deno run -A --no-check scripts/gen-npm.ts"
+    "ok": "deno fmt && deno task test --coverage=.coverage && deno coverage --exclude=test --exclude=benchmark --exclude=public .coverage"
   },
   "exclude": [
     "./examples/*.ts",
@@ -23,20 +22,10 @@
     ]
   },
   "lint": {
-    "exclude": [
-      "npm",
-      "public",
-      "lib",
-      "scripts"
-    ]
+    "exclude": ["public", "lib", "scripts"]
   },
   "fmt": {
-    "exclude": [
-      "npm",
-      "public",
-      "lib",
-      "scripts"
-    ]
+    "exclude": ["public", "lib", "scripts"]
   },
   "name": "@joshlong145/span",
   "version": "0.9.0",
