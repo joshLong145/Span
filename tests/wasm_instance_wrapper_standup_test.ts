@@ -45,7 +45,7 @@ Deno.test("Wasm Worker Wrapper manager should have config correctly defnined", (
         fd.close();
         return mod;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 
@@ -79,7 +79,7 @@ Deno.test("Wasm class members should be defined", () => {
         fd.close();
         return mod;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 

@@ -59,7 +59,7 @@ class TestExample extends WorkerDefinition {
 
 Deno.test("Worker Wrapper manager should respect buffer when returned", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
 
   await wrapper.start();
 
@@ -92,7 +92,7 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
 Deno.test("Worker Wrapper manager should respect argument value in buffer when returned", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
 
   await wrapper.start();
   await inst.execute("bar", { value: 10 }).promise.then((buf) => {
@@ -104,7 +104,7 @@ Deno.test("Worker Wrapper manager should respect argument value in buffer when r
 
 Deno.test("Worker Wrapper Generated Promise should handle rejections", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
 
   await wrapper.start();
   await inst.execute("testErrorCatch", {}).promise.catch((err) => {
@@ -116,7 +116,7 @@ Deno.test("Worker Wrapper Generated Promise should handle rejections", async () 
 Deno.test("Pooling should correctly route requests to workers with buffer allowance", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
+    workerCount: 2,
     taskCount: 2,
   });
 
@@ -147,7 +147,7 @@ Deno.test("Pooling should correctly route requests to workers with buffer allowa
 Deno.test("Timeout should kill worker if there is no response", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
+    workerCount: 2,
     taskCount: 2,
   });
 

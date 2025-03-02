@@ -21,8 +21,8 @@ class TestExample extends WorkerDefinition {
 
 Deno.test("Worker Wrapper should be defined", () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
-  assertEquals(wrapper["_config"], { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
+  assertEquals(wrapper["_config"], { workerCount: 2 });
   assertEquals(inst, wrapper["_instance"]);
 });
 
