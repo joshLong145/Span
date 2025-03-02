@@ -1,4 +1,4 @@
-import { WorkerAny } from "./mod.ts";
+import type { WorkerAny } from "./mod.ts";
 import type { Pool } from "./Pool.ts";
 import type { TaskPromise } from "./PromiseExtension.ts";
 
@@ -120,7 +120,7 @@ export class WorkerDefinition {
  *  // log the result
  *  console.log(new Uint8Array(buffer)[0]);
  */
-export class InstanceWrapper<T extends WorkerDefinition> {
+export class InstanceWrapper<T extends WorkerDefinition | CallableFunction> {
   private _config: InstanceConfiguration;
   private _instance: T;
   private _wm: WorkerManager | undefined;
@@ -155,12 +155,12 @@ export class InstanceWrapper<T extends WorkerDefinition> {
     // this will allow the promise being awaited to resolve by the caller.
     this._workerString += this._config.modulePath
       ? ""
-      : `postMessage({ready: true}); ${
+      : `postMessage({READY: true}); ${
         this._config.namespace != undefined ? this._config.namespace : "span"
       }.workerState = "READY";`;
 
     await this?._wb?.workerBootstrap(
-      this._instance as T,
+      this._instance as WorkerDefinition,
       this._workerString,
       {
         workerCount: this._config.workerCount ?? 1,
@@ -178,7 +178,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
     }
 
     await this?._wb?.workerBootstrap(
-      this._instance as T,
+      this._instance as WorkerDefinition,
       this._workerString,
     );
   }
@@ -233,7 +233,7 @@ export class InstanceWrapper<T extends WorkerDefinition> {
 
     let execFd = `
 let ${this._config.namespace ?? "span"} = {}
-${this._config.namespace ?? "span"}.workerState = "PENDING";
+${this._config.namespace ?? "span"}.workerState = "BUSY";
 `;
 
     for (const addon of this._config?.addons ?? []) {
@@ -245,7 +245,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
     this._workerString += execFd;
     this._config.modulePath
       ? this._workerString += this._genWebAssemblyBinding()
-      : this._workerString += `postMessage({ready: true}); ${
+      : this._workerString += `postMessage({READY: true}); ${
         this._config.namespace ?? "span"
       }.workerState = "READY";`;
   }
@@ -284,7 +284,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           }
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
-            ready: true
+            READY: true
           })
         });
       } else {
@@ -292,10 +292,10 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           initSync && initSync(uint8);
           for (const key of Object.keys(wasm)){
             self[key] = wasm[key];
-          } 
+          }
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
-            ready: true
+            READY: true
           });
         } else if(typeof wasm_bindgen !== "undefined") {
           wasm_bindgen && ((module) =>{
@@ -307,7 +307,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
 
             ${this._config.namespace ?? "span"}.workerState = "READY";
             postMessage({
-              ready: true
+              READY: true
             });
           })(wasm_bindgen);
         }

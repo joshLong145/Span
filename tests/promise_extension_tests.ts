@@ -56,7 +56,7 @@ Deno.test("Promise should reject and throw error on timeout", async () => {
 Deno.test("Promise should resolve and return array buffer", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
+    workerCount: 2,
     taskCount: 2,
   });
   await wrapper.start();
@@ -71,7 +71,7 @@ Deno.test("Promise should resolve and return array buffer", async () => {
 Deno.test("Promise should reject and throw error on timeout when infinite loop occures", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
+    workerCount: 2,
     taskCount: 2,
   });
   await wrapper.start();

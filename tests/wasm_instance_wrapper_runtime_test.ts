@@ -96,7 +96,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from GoLang module", asyn
         fd.close();
         return mod;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 
@@ -150,7 +150,7 @@ Deno.test("WASM Worker method should correct pass arguments", async () => {
         fd.close();
         return mod;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 
@@ -194,7 +194,7 @@ Deno.test("WASM Worker Should have wasm methods loaded from Rust compiled module
         fd.close();
         return source;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 

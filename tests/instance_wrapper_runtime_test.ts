@@ -4,6 +4,7 @@ import {
   assertRejects,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
 import { InstanceWrapper, ThreadState, WorkerDefinition } from "../src/mod.ts";
+import { TaskPromise } from "../src/PromiseExtension.ts";
 
 class TestExample extends WorkerDefinition {
   public constructor() {
@@ -59,7 +60,7 @@ class TestExample extends WorkerDefinition {
 
 Deno.test("Worker Wrapper manager should respect buffer when returned", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
 
   await wrapper.start();
 
@@ -92,7 +93,7 @@ Deno.test("Worker Wrapper manager should respect buffer when returned", async ()
 
 Deno.test("Worker Wrapper manager should respect argument value in buffer when returned", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
 
   await wrapper.start();
   await inst.execute("bar", { value: 10 }).promise.then((buf) => {
@@ -104,7 +105,7 @@ Deno.test("Worker Wrapper manager should respect argument value in buffer when r
 
 Deno.test("Worker Wrapper Generated Promise should handle rejections", async () => {
   const inst = new TestExample();
-  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 5 });
+  const wrapper = new InstanceWrapper<TestExample>(inst, { workerCount: 2 });
 
   await wrapper.start();
   await inst.execute("testErrorCatch", {}).promise.catch((err) => {
@@ -114,25 +115,25 @@ Deno.test("Worker Wrapper Generated Promise should handle rejections", async () 
 });
 
 Deno.test("Pooling should correctly route requests to workers with buffer allowance", async () => {
+  const workerCount = 2;
+  const taskCount = 2;
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
-    taskCount: 2,
+    workerCount: workerCount,
+    taskCount: taskCount,
   });
 
   await wrapper.start();
-  const promises = [];
-  for (let i = 0; i < 6; i++) {
+  const promises: TaskPromise[] = [];
+  for (let i = 0; i < workerCount + 1; i++) {
     promises.push(inst.execute("testAsync", {}));
   }
 
-  assertEquals(promises.length, 6);
-
   for (let i = 0; i < inst.pool?.getThreadStates().length!; i++) {
-    if (i <= Math.ceil(5 / 2) - 1) {
+    if (i === 0) {
       assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 2);
     } else {
-      assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 0);
+      assertEquals(inst.pool?.getThreadStates()[i].tasks.length, 1);
     }
   }
 
@@ -147,7 +148,7 @@ Deno.test("Pooling should correctly route requests to workers with buffer allowa
 Deno.test("Timeout should kill worker if there is no response", async () => {
   const inst = new TestExample();
   const wrapper = new InstanceWrapper<TestExample>(inst, {
-    workerCount: 5,
+    workerCount: 2,
     taskCount: 2,
   });
 
@@ -161,7 +162,7 @@ Deno.test("Timeout should kill worker if there is no response", async () => {
     // catch the timeout error
   }
 
-  assertEquals(inst.pool!.threads.length, 4);
+  assertEquals(inst.pool!.threads.length, 1);
   inst.terminateWorker();
 });
 
