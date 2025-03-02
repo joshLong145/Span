@@ -27,26 +27,7 @@ export class Pool {
         }),
       );
     }
-
-    let ready =
-      this.threads.filter((thread) => thread.state === "IDLE").length ===
-        this._args.workerCount;
-    let totalWaitTime = 0;
-    while (!ready) {
-      if (totalWaitTime >= 2_000) {
-        this.terminate();
-        throw new Error("could not stand up all workers shutting down");
-      }
-      await this._wait(10);
-      totalWaitTime += 10;
-      ready = this.threads.filter((thread) =>
-        thread.state === "IDLE"
-      ).length ===
-        this._args.workerCount;
-    }
-    this._timers.forEach((t) => {
-      clearTimeout(t);
-    });
+    await this.waitForWorkersReady(2_000);
   };
 
   findWorkerForId = (id: string): WorkerHandler | undefined => {
@@ -158,6 +139,59 @@ export class Pool {
       this.threads.splice(index, 1);
     }
   };
+
+  /**
+   * Waits for all worker threads to be in IDLE state
+   * @param {number} timeoutMs - Maximum time to wait in milliseconds
+   * @returns {Promise<void>} - Resolves when all workers are ready
+   * @throws {Error} - If workers don't become ready within timeout
+   */
+  async waitForWorkersReady(timeoutMs = 2000) {
+    const checkInterval = 10; // Check every 10ms
+
+    // Create a promise that resolves when all workers are ready
+    const workersReadyPromise = new Promise<void>((resolve, reject) => {
+      // Check if already ready
+      if (this.areAllWorkersIdle()) {
+        return resolve();
+      }
+
+      let elapsedTime = 0;
+      const intervalId = setInterval(() => {
+        elapsedTime += checkInterval;
+
+        // Check if all workers are in IDLE state
+        if (this.areAllWorkersIdle()) {
+          clearInterval(intervalId);
+          resolve();
+        } // Check if we've exceeded timeout
+        else if (elapsedTime >= timeoutMs) {
+          clearInterval(intervalId);
+          reject(
+            new Error(
+              "Could not stand up all workers within the timeout period",
+            ),
+          );
+        }
+      }, checkInterval);
+    });
+
+    try {
+      await workersReadyPromise;
+    } catch (error) {
+      this.terminate();
+      throw error;
+    }
+  }
+
+  /**
+   * Helper method to check if all workers are idle
+   * @returns {boolean} - True if all workers are in IDLE state
+   */
+  areAllWorkersIdle(): boolean {
+    return this.threads.filter((thread) => thread.state === "IDLE").length ===
+      this._args.workerCount;
+  }
 
   /** */
   public static uuidv4(): string {
