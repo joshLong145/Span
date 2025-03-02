@@ -21,17 +21,18 @@ export class Pool {
 
     for (let i = 0; i < this._args.workerCount; i++) {
       this.threads.push(
-        new WorkerHandler(definition, { taskCount: this._args.taskCount }),
+        new WorkerHandler(definition, {
+          taskCount: this._args.taskCount,
+        }),
       );
     }
 
-    let ready = this.threads.filter((thread) => thread.isReady()).length ===
+    let ready = this.threads.filter((thread) => thread.state === "IDLE").length ===
       this._args.workerCount;
     while (!ready) {
       await this._wait(10);
-      ready = this.threads.filter((thread) =>
-        thread.isReady()
-      ).length === this._args.workerCount;
+      ready = this.threads.filter((thread) => thread.state === "IDLE").length ===
+        this._args.workerCount;
     }
   };
 
@@ -109,7 +110,7 @@ export class Pool {
         return;
       }
 
-      thread._executionMap[task.id] = task,
+      (thread._executionMap[task.id] = task),
         thread.worker.postMessage({
           name: task.name,
           id: task.id,
@@ -148,9 +149,10 @@ export class Pool {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
       /[018]/g,
       (c: number) =>
-        (crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(
-          16,
-        ),
+        (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+          .toString(
+            16,
+          ),
     );
   }
 }
