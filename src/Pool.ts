@@ -33,7 +33,7 @@ export class Pool {
         this._args.workerCount;
     let totalWaitTime = 0;
     while (!ready) {
-      if (totalWaitTime >= 10_000) {
+      if (totalWaitTime >= 2_000) {
         this.terminate();
         throw new Error("could not stand up all workers shutting down");
       }
