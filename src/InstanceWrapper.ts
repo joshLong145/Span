@@ -233,7 +233,7 @@ export class InstanceWrapper<T extends WorkerDefinition | CallableFunction> {
 
     let execFd = `
 let ${this._config.namespace ?? "span"} = {}
-${this._config.namespace ?? "span"}.workerState = "PENDING";
+${this._config.namespace ?? "span"}.workerState = "BUSY";
 `;
 
     for (const addon of this._config?.addons ?? []) {
@@ -245,7 +245,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
     this._workerString += execFd;
     this._config.modulePath
       ? this._workerString += this._genWebAssemblyBinding()
-      : this._workerString += `postMessage({ready: true}); ${
+      : this._workerString += `postMessage({READY: true}); ${
         this._config.namespace ?? "span"
       }.workerState = "READY";`;
   }
@@ -284,7 +284,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           }
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
-            ready: true
+            READY: true
           })
         });
       } else {
@@ -295,7 +295,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
           }
           ${this._config.namespace ?? "span"}.workerState = "READY";
           postMessage({
-            ready: true
+            READY: true
           });
         } else if(typeof wasm_bindgen !== "undefined") {
           wasm_bindgen && ((module) =>{
@@ -307,7 +307,7 @@ ${this._config.namespace ?? "span"}.workerState = "PENDING";
 
             ${this._config.namespace ?? "span"}.workerState = "READY";
             postMessage({
-              ready: true
+              READY: true
             });
           })(wasm_bindgen);
         }

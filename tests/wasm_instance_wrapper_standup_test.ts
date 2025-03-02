@@ -89,7 +89,7 @@ Deno.test("Wasm class members should be defined", () => {
   assertExists(wrapper["_wm"]);
 });
 
-Deno.test("Wasm class should have correct worker number on start", () => {
+Deno.test("Wasm class should have correct worker number on start", async () => {
   const example: TestExample = new TestExample();
   const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
@@ -116,14 +116,14 @@ Deno.test("Wasm class should have correct worker number on start", () => {
     },
   );
 
-  wrapper.start();
+  await wrapper.start();
   example.terminateWorker();
 
   //@ts-ignore private members defined
   assertEquals(wrapper["_wm"]["_workers"].length, 1);
 });
 
-Deno.test("Wasm class ", () => {
+Deno.test("Wasm class ", async () => {
   const example: TestExample = new TestExample();
   const wasmLibPath = path.join(Deno.cwd(), "lib", "wasm_exec_tiny.js");
 
@@ -150,7 +150,7 @@ Deno.test("Wasm class ", () => {
     },
   );
 
-  wrapper.start();
+  await wrapper.start();
   example.terminateWorker();
 
   //@ts-ignore private members defined

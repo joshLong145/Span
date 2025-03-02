@@ -11,6 +11,7 @@ export class Pool {
   // deno-lint-ignore no-explicit-any
   private _waitLockResolver: any | undefined;
   private _definition: string | undefined;
+  private _timers: number[] = [];
 
   constructor(args: PoolArgs) {
     this._args = args;
@@ -27,13 +28,25 @@ export class Pool {
       );
     }
 
-    let ready = this.threads.filter((thread) => thread.state === "IDLE").length ===
-      this._args.workerCount;
+    let ready =
+      this.threads.filter((thread) => thread.state === "IDLE").length ===
+        this._args.workerCount;
+    let totalWaitTime = 0;
     while (!ready) {
+      if (totalWaitTime >= 1_000) {
+        this.terminate();
+        throw new Error("could not stand up all workers shutting down");
+      }
       await this._wait(10);
-      ready = this.threads.filter((thread) => thread.state === "IDLE").length ===
+      totalWaitTime += 10;
+      ready = this.threads.filter((thread) =>
+        thread.state === "IDLE"
+      ).length ===
         this._args.workerCount;
     }
+    this._timers.forEach((t) => {
+      clearTimeout(t);
+    });
   };
 
   findWorkerForId = (id: string): WorkerHandler | undefined => {
@@ -90,6 +103,9 @@ export class Pool {
     for (let i = 0; i < this.threads.length; i++) {
       this.threads[i].worker.terminate();
     }
+    for (let i = 0; i < this._timers.length; i++) {
+      clearTimeout(this._timers[i]);
+    }
   };
 
   _next = (): Promise<void | SharedArrayBuffer> | undefined => {
@@ -122,7 +138,7 @@ export class Pool {
 
   _wait = (ms: number): Promise<void> => {
     return new Promise<void>((res, _) => {
-      setTimeout(res, ms);
+      this._timers.push(setTimeout(res, ms));
     });
   };
 
