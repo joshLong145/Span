@@ -112,7 +112,7 @@ Deno.test("Wasm class should have correct worker number on start", async () => {
         fd.close();
         return mod;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 
@@ -146,7 +146,7 @@ Deno.test("Wasm class ", async () => {
         fd.close();
         return mod;
       },
-      workerCount: 5,
+      workerCount: 2,
     },
   );
 
