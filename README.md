@@ -9,7 +9,7 @@
 </p>
 
 `Span` provides a simplified way to use Web Workers in Deno and other JavaScript
-runtimes. Abstracting the complexities of Web Workers of WebWorkers through a
+runtimes. Abstracting the complexities of WebWorkers through a
 pooling abstraction. Allowing you to define methods within a class that are
 automatically translated into functions executed in a Web Worker. This module
 helps manage execution state and shared memory using `SharedArrayBuffer`.
